@@ -35,12 +35,20 @@ enum MACHINE_INSTRUCTION_NAME {
 
 const ONE_WORD_INSTRUCTION_NAMES = ['RET'];
 
-function isMachineInstruction(word: string): boolean {
-  return Object.keys(MACHINE_INSTRUCTION_NAME).includes(word);
+function isMachineInstruction(value: string): boolean {
+  return Object.keys(MACHINE_INSTRUCTION_NAME).includes(value);
 }
 
-function isOneWordInstruction(word: string): boolean {
-  return ONE_WORD_INSTRUCTION_NAMES.includes(word);
+function isOneWordInstruction(value: string): boolean {
+  return ONE_WORD_INSTRUCTION_NAMES.includes(value);
+}
+
+function extractRegisterNumber(value: string): string {
+  return value.slice(-1);
+}
+
+function isRegister(value: string): boolean {
+  return Object.keys(REGISTER_NAME).includes(value);
 }
 
 (async function () {
@@ -63,7 +71,7 @@ function isOneWordInstruction(word: string): boolean {
   const toLateInit: [MemoryAddress, number][] = [];
 
   let wordCount = 0;
-  const labelToAddrMap: { [key: string]: number } = {};
+  const labelToAddrMap: { [key: string]: MemoryAddress } = {};
   // まずラベルの対応付け、DC, DSを処理する
   source.forEach(function (line, index) {
     if (line[0].length) {
@@ -98,9 +106,41 @@ function isOneWordInstruction(word: string): boolean {
   console.log('アセンブラ命令処理完了');
   console.log(MEMORY);
 
+  function getAddressByLabel(labelName: string): number {
+    const address = labelToAddrMap[labelName];
+    if (!address) {
+      throw new Error(`未定義のラベル ${labelName}`);
+    }
+    return address;
+  }
+
   toLateInit.forEach(function (args) {
     const line = source[args[1]];
+    const operands = [];
+    operands.push(line[1]);
+    if (line[2].length) {
+      if (isRegister(line[2])) {
+        operands.push(extractRegisterNumber(line[2]));
+      } else {
+        // TODO: 本当はここでラベルかアドレスかの判定が必要
+        const operand2 = getAddressByLabel(line[2]);
+        operands.push(`${operand2}`);
+      }
+    }
+    if (line[3].length) {
+      if (isRegister(line[3])) {
+        operands.push(extractRegisterNumber(line[3]));          
+      } else {
+        // TODO: 本当はここでラベルかアドレスかの判定が必要
+        const operand3 = getAddressByLabel(line[3]);
+        operands.push(`${operand3}`);
+      }
+    }
+    // TODO: 本当はここで指標レジスタの処理が必要
+    MEMORY[args[0]] = operands.join(',');
   });
+  console.log('コンパイル完了');
+  console.log(MEMORY);
 
   const INSTRUCTIONS = {
     LD(rOrR1: string, adrOrR2: string, x: string) {
