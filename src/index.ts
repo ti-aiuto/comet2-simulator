@@ -169,6 +169,23 @@ function isRegister(value: string): boolean {
     if (instruction === MACHINE_INSTRUCTION_NAME.ST) {
       setValueByAddress(Number.parseInt(args[2]), REGISTERS[`GR${args[1]}`]);
     }
+    if (instruction === MACHINE_INSTRUCTION_NAME.CPA) {
+      // TODO: ここでレジスタとメモリ間の比較を要実装
+      const r1Value = Number(REGISTERS[`GR${args[1]}`]);
+      const r2Value = Number(REGISTERS[`GR${args[2]}`]);
+      const result = r1Value - r2Value;
+      REGISTERS[REGISTER_NAME.OF] = '0';
+      if (result > 0) {
+        REGISTERS[REGISTER_NAME.SF] = '0';
+        REGISTERS[REGISTER_NAME.ZF] = '0';
+      } else if (result === 0) {
+        REGISTERS[REGISTER_NAME.SF] = '0';
+        REGISTERS[REGISTER_NAME.ZF] = '1';
+      } else {
+        REGISTERS[REGISTER_NAME.SF] = '1';
+        REGISTERS[REGISTER_NAME.ZF] = '0';
+      }
+    }
     if (instruction === MACHINE_INSTRUCTION_NAME.JUMP) {
       REGISTERS[REGISTER_NAME.PR] = args[1];
       continue;
