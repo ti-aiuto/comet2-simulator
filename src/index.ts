@@ -174,6 +174,7 @@ function isRegister(value: string): boolean {
       const r1Value = Number(REGISTERS[`GR${args[1]}`]);
       const r2Value = Number(REGISTERS[`GR${args[2]}`]);
       REGISTERS[`GR${args[1]}`] = `${r1Value - r2Value}`;
+      console.log(REGISTERS);
     }
     if (instruction === MACHINE_INSTRUCTION_NAME.CPA) {
       // TODO: ここでレジスタとメモリ間の比較を要実装
@@ -191,13 +192,14 @@ function isRegister(value: string): boolean {
         REGISTERS[REGISTER_NAME.SF] = '1';
         REGISTERS[REGISTER_NAME.ZF] = '0';
       }
+      console.log(REGISTERS); 
     }
     if (instruction === MACHINE_INSTRUCTION_NAME.JUMP) {
       REGISTERS[REGISTER_NAME.PR] = args[1];
       continue;
     }
     if (instruction === MACHINE_INSTRUCTION_NAME.JZE) {
-      if (REGISTERS[REGISTER_NAME.ZF] === '0') {
+      if (REGISTERS[REGISTER_NAME.ZF] === '1') {
         REGISTERS[REGISTER_NAME.PR] = args[1];
         continue;
       }
