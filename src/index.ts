@@ -16,7 +16,9 @@ enum REGISTER_NAME {
 
 enum PSEUDO_INSTRUCTION_NAME {
   DC = 'DC',
-  DS = 'DS'
+  DS = 'DS',
+  START = 'START',
+  END = 'END'
 }
 
 (async function () {
@@ -43,6 +45,10 @@ enum PSEUDO_INSTRUCTION_NAME {
   source.forEach(function (line) {
     if (line[0].length) {
       labelToAddrMap[line[0]] = wordCount;
+    }
+    if (line[1] === PSEUDO_INSTRUCTION_NAME.START || line[1] === PSEUDO_INSTRUCTION_NAME.END) {
+      // TODO: STARTの引数をとるようにする
+      return;
     }
     if (line[1] === PSEUDO_INSTRUCTION_NAME.DC) {
       MEMORY[wordCount] = line[2];
