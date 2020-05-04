@@ -28,8 +28,11 @@ enum MACHINE_INSTRUCTION_NAME {
   JZE = 'JZE',
   JMI = 'JMI',
   SUBA = 'SUBA',
-  JUMP = 'JUMP'
+  JUMP = 'JUMP', 
+  RET = 'RET'
 }
+
+const ONE_WORD_INSTRUCTION_NAMES = ['RET'];
 
 (async function () {
   const source: (string[])[] = sampleSource;
@@ -62,27 +65,28 @@ enum MACHINE_INSTRUCTION_NAME {
     }
     if (line[1] === PSEUDO_INSTRUCTION_NAME.DC) {
       MEMORY[wordCount] = line[2];
+      // TODO: ここで内容文の語数を確保する
+      wordCount += 1;
     } else if (line[1] === PSEUDO_INSTRUCTION_NAME.DS) {
       MEMORY[wordCount] = '';
+      // TODO: ここで内容文の語数を確保する
+      wordCount += 1;
     } else {
       MEMORY[wordCount] = JSON.stringify(line.slice(1, 5)); // TODO: ここで1語or2語の命令に変換したい
-    }
-    // TODO: DCで複数語文の定義を要考慮
-    if (line[3].length) {
-      if (Object.keys(REGISTER_NAME).includes(line[3])) {
-        // 第二引数がレジスタの場合
-        wordCount += 1;
+      if (Object.keys(MACHINE_INSTRUCTION_NAME).includes(line[1])) {
+        if (ONE_WORD_INSTRUCTION_NAMES.includes(line[1])) {
+          wordCount += 1;
+        } else {
+          wordCount += 2;
+        }
       } else {
-        // 第二引数がアドレスの場合
-        wordCount += 2;
+        throw new Error(`未実装 ${line[1]}`);
       }
-    } else {
-      wordCount += 1;
     }
   });
   console.log('アセンブラ命令処理完了');
   console.log(MEMORY);
-  
+
   const INSTRUCTIONS = {
     LD(rOrR1: string, adrOrR2: string, x: string) {
 
