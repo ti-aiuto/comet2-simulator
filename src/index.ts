@@ -121,6 +121,11 @@ function isRegister(value: string): boolean {
     if (line[2].length) {
       if (isRegister(line[2])) {
         operands.push(extractRegisterNumber(line[2]));
+        if (line[4].length && isRegister(line[4])) {
+          operands.push(extractRegisterNumber(line[4]));
+        } else {
+          operands.push('0');
+        }
       } else {
         // TODO: 本当はここでラベルかアドレスかの判定が必要
         const operand2 = getAddressByLabel(line[2]);
@@ -136,7 +141,6 @@ function isRegister(value: string): boolean {
         operands.push(`${operand3}`);
       }
     }
-    // TODO: 本当はここで指標レジスタの処理が必要
     MEMORY[args[0]] = operands.join(',');
   });
   console.log('コンパイル完了');
@@ -144,7 +148,7 @@ function isRegister(value: string): boolean {
 
   const INSTRUCTIONS = {
     LD(rOrR1: string, adrOrR2: string, x: string) {
-
+      
     }
   };
 })();
