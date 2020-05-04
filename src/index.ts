@@ -11,6 +11,11 @@ type WordValue = string;
   // FR: OF, SF, ZF
   // SPはいったん無視
 
+  const source: (string[])[] = sampleSource;
+
+  // TODO: keyをいったんlabelにしているが、いつかアドレスにする
+  const MEMORY: {[key: string]: WordValue} = {};
+
   const REGISTERS: { [key: string]: WordValue } = {
     PR: '',
     GR0: '',
@@ -25,8 +30,7 @@ type WordValue = string;
 
   const INSTRUCTIONS = {
     LD(rOrR1: string, adrOrR2: string, x: string) {
-
+      
     }
   };
-
 })();
