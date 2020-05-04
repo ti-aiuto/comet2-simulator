@@ -146,9 +146,21 @@ function isRegister(value: string): boolean {
   console.log('コンパイル完了');
   console.log(MEMORY);
 
-  const INSTRUCTIONS = {
-    LD(rOrR1: string, adrOrR2: string, x: string) {
-
+  REGISTERS[REGISTER_NAME.PR] = '0';
+  while(REGISTERS[REGISTER_NAME.PR].length) {
+    let currentAddress = Number(REGISTERS[REGISTER_NAME.PR]);
+    const instruction = MEMORY[currentAddress]
+    console.log(instruction);
+    const args = instruction.split(',');
+    if (instruction === MACHINE_INSTRUCTION_NAME.RET) {
+      console.log('処理終了');
+      break;
     }
-  };
+    if (isOneWordInstruction(args[0])) {
+      currentAddress += 1;
+    } else {
+      currentAddress += 2
+    }
+    REGISTERS[REGISTER_NAME.PR] = `${currentAddress}`;
+  }
 })();
