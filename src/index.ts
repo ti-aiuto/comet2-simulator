@@ -163,11 +163,11 @@ function isRegister(value: string): boolean {
     const instruction = args[0];
     if (instruction === MACHINE_INSTRUCTION_NAME.LD) {
       // TODO: ここでレジスタ間の移動、指標レジスタ考慮を要実装
-      REGISTERS[`GR${args[1]}`] = getValueByAddress(Number.parseInt(args[2]));
+      REGISTERS[`GR${args[1]}`] = getValueByAddress(Number.parseInt(args[3]));
       console.log(REGISTERS);
     }
     if (instruction === MACHINE_INSTRUCTION_NAME.ST) {
-      setValueByAddress(Number.parseInt(args[2]), REGISTERS[`GR${args[1]}`]);
+      setValueByAddress(Number.parseInt(args[3]), REGISTERS[`GR${args[1]}`]);
     }
     if (instruction === MACHINE_INSTRUCTION_NAME.CPA) {
       // TODO: ここでレジスタとメモリ間の比較を要実装
@@ -190,9 +190,22 @@ function isRegister(value: string): boolean {
       REGISTERS[REGISTER_NAME.PR] = args[1];
       continue;
     }
+    if (instruction === MACHINE_INSTRUCTION_NAME.JZE) {
+      if (REGISTERS[REGISTER_NAME.ZF] === '0') {
+        REGISTERS[REGISTER_NAME.PR] = args[1];
+        continue;
+      }
+    }
+    if (instruction === MACHINE_INSTRUCTION_NAME.JMI) {
+      if (REGISTERS[REGISTER_NAME.SF] === '1') {
+        REGISTERS[REGISTER_NAME.PR] = args[1];
+        continue;
+      }
+    }
     if (instruction === MACHINE_INSTRUCTION_NAME.RET) {
       console.log('処理終了');
       console.log(REGISTERS);
+      console.log(MEMORY);
       break;
     }
     if (isOneWordInstruction(args[0])) {
