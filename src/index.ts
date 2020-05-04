@@ -146,19 +146,36 @@ function isRegister(value: string): boolean {
   console.log('コンパイル完了');
   console.log(MEMORY);
 
+  function getValueByAddress(address: MemoryAddress): WordValue {
+    return MEMORY[address];
+  }
+
+  function setValueByAddress(address: MemoryAddress, value: WordValue): void {
+    MEMORY[address] = value;
+  }
+
   REGISTERS[REGISTER_NAME.PR] = '0';
-  while(REGISTERS[REGISTER_NAME.PR].length) {
+  while (REGISTERS[REGISTER_NAME.PR].length) {
     let currentAddress = Number(REGISTERS[REGISTER_NAME.PR]);
     const instructionLine = MEMORY[currentAddress]
     console.log(instructionLine);
     const args = instructionLine.split(',');
     const instruction = args[0];
+    if (instruction === MACHINE_INSTRUCTION_NAME.LD) {
+      // TODO: ここでレジスタ間の移動、指標レジスタ考慮を要実装
+      REGISTERS[`GR${args[1]}`] = getValueByAddress(Number.parseInt(args[2]));
+      console.log(REGISTERS);
+    }
+    if (instruction === MACHINE_INSTRUCTION_NAME.ST) {
+      setValueByAddress(Number.parseInt(args[2]), REGISTERS[`GR${args[1]}`]);
+    }
     if (instruction === MACHINE_INSTRUCTION_NAME.JUMP) {
       REGISTERS[REGISTER_NAME.PR] = args[1];
       continue;
     }
     if (instruction === MACHINE_INSTRUCTION_NAME.RET) {
       console.log('処理終了');
+      console.log(REGISTERS);
       break;
     }
     if (isOneWordInstruction(args[0])) {
