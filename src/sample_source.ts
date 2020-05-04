@@ -2,7 +2,7 @@ export const sampleSource = [
   ['REI1431', 'START', '', '', ''],
   ['', 'LD', 'GR1', 'M', ''],
   ['', 'LD', 'GR2', 'N', ''],
-  ['', 'ST', 'GR1', 'NWK', ''],
+  ['', 'ST', 'GR1', 'MWK', ''],
   ['', 'ST', 'GR2', 'NWK', ''],
   ['LOOP1', 'LD', 'GR1', 'MWK', ''],
   ['', 'LD', 'GR2', 'NWK', ''],
