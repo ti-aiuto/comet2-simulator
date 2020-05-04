@@ -21,6 +21,16 @@ enum PSEUDO_INSTRUCTION_NAME {
   END = 'END'
 }
 
+enum MACHINE_INSTRUCTION_NAME {
+  LD = 'LD',
+  ST = 'ST',
+  CPA = 'CPA',
+  JZE = 'JZE',
+  JMI = 'JMI',
+  SUBA = 'SUBA',
+  JUMP = 'JUMP'
+}
+
 (async function () {
   const source: (string[])[] = sampleSource;
 
@@ -72,7 +82,7 @@ enum PSEUDO_INSTRUCTION_NAME {
   });
   console.log('アセンブラ命令処理完了');
   console.log(MEMORY);
-
+  
   const INSTRUCTIONS = {
     LD(rOrR1: string, adrOrR2: string, x: string) {
 
