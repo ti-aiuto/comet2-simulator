@@ -149,9 +149,14 @@ function isRegister(value: string): boolean {
   REGISTERS[REGISTER_NAME.PR] = '0';
   while(REGISTERS[REGISTER_NAME.PR].length) {
     let currentAddress = Number(REGISTERS[REGISTER_NAME.PR]);
-    const instruction = MEMORY[currentAddress]
-    console.log(instruction);
-    const args = instruction.split(',');
+    const instructionLine = MEMORY[currentAddress]
+    console.log(instructionLine);
+    const args = instructionLine.split(',');
+    const instruction = args[0];
+    if (instruction === MACHINE_INSTRUCTION_NAME.JUMP) {
+      REGISTERS[REGISTER_NAME.PR] = args[1];
+      continue;
+    }
     if (instruction === MACHINE_INSTRUCTION_NAME.RET) {
       console.log('処理終了');
       break;
