@@ -1,5 +1,6 @@
 import { sampleSource } from './sample_source';
 
+type MemoryAddress = number;
 type WordValue = string;
 
 enum REGISTER_NAME {
@@ -28,11 +29,19 @@ enum MACHINE_INSTRUCTION_NAME {
   JZE = 'JZE',
   JMI = 'JMI',
   SUBA = 'SUBA',
-  JUMP = 'JUMP', 
+  JUMP = 'JUMP',
   RET = 'RET'
 }
 
 const ONE_WORD_INSTRUCTION_NAMES = ['RET'];
+
+function isMachineInstruction(word: string): boolean {
+  return Object.keys(MACHINE_INSTRUCTION_NAME).includes(word);
+}
+
+function isOneWordInstruction(word: string): boolean {
+  return ONE_WORD_INSTRUCTION_NAMES.includes(word);
+}
 
 (async function () {
   const source: (string[])[] = sampleSource;
@@ -51,11 +60,12 @@ const ONE_WORD_INSTRUCTION_NAMES = ['RET'];
   };
 
   const MEMORY: { [key: number]: WordValue } = {};
+  const toLateInit: [MemoryAddress, number][] = [];
 
   let wordCount = 0;
   const labelToAddrMap: { [key: string]: number } = {};
   // まずラベルの対応付け、DC, DSを処理する
-  source.forEach(function (line) {
+  source.forEach(function (line, index) {
     if (line[0].length) {
       labelToAddrMap[line[0]] = wordCount;
     }
@@ -72,9 +82,10 @@ const ONE_WORD_INSTRUCTION_NAMES = ['RET'];
       // TODO: ここで内容文の語数を確保する
       wordCount += 1;
     } else {
-      MEMORY[wordCount] = JSON.stringify(line.slice(1, 5)); // TODO: ここで1語or2語の命令に変換したい
-      if (Object.keys(MACHINE_INSTRUCTION_NAME).includes(line[1])) {
-        if (ONE_WORD_INSTRUCTION_NAMES.includes(line[1])) {
+      MEMORY[wordCount] = '';
+      toLateInit.push([wordCount, index]);
+      if (isMachineInstruction(line[1])) {
+        if (isOneWordInstruction(line[1])) {
           wordCount += 1;
         } else {
           wordCount += 2;
@@ -86,6 +97,10 @@ const ONE_WORD_INSTRUCTION_NAMES = ['RET'];
   });
   console.log('アセンブラ命令処理完了');
   console.log(MEMORY);
+
+  toLateInit.forEach(function (args) {
+    const line = source[args[1]];
+  });
 
   const INSTRUCTIONS = {
     LD(rOrR1: string, adrOrR2: string, x: string) {
