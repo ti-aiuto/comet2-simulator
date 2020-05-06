@@ -51,6 +51,18 @@ function isRegister(value: string): boolean {
   return Object.keys(REGISTER_NAME).includes(value);
 }
 
+class Memory {
+  private values: { [key: number]: WordValue } = {};
+
+  getValueAt(address: MemoryAddress): WordValue {
+    return this.values[address];
+  }
+
+  setValueAt(address: MemoryAddress, value: WordValue) {
+    this.values[address] = value;
+  }
+}
+
 (async function () {
   const source: (string[])[] = sampleSource;
 
@@ -67,7 +79,7 @@ function isRegister(value: string): boolean {
     [REGISTER_NAME.ZF]: ''
   };
 
-  const MEMORY: { [key: number]: WordValue } = {};
+  const memory = new Memory();
   const toLateInit: [MemoryAddress, number][] = [];
 
   let wordCount = 0;
@@ -82,15 +94,15 @@ function isRegister(value: string): boolean {
       return;
     }
     if (line[1] === PSEUDO_INSTRUCTION_NAME.DC) {
-      MEMORY[wordCount] = line[2];
+      memory.setValueAt(wordCount, line[2]);
       // TODO: ここで内容文の語数を確保する
       wordCount += 1;
     } else if (line[1] === PSEUDO_INSTRUCTION_NAME.DS) {
-      MEMORY[wordCount] = '';
+      memory.setValueAt(wordCount, '');
       // TODO: ここで内容文の語数を確保する
       wordCount += 1;
     } else {
-      MEMORY[wordCount] = '';
+      memory.setValueAt(wordCount, '');
       toLateInit.push([wordCount, index]);
       if (isMachineInstruction(line[1])) {
         if (isOneWordInstruction(line[1])) {
@@ -104,7 +116,7 @@ function isRegister(value: string): boolean {
     }
   });
   console.log('アセンブラ命令処理完了');
-  console.log(MEMORY);
+  console.log(memory);
 
   function getAddressByLabel(labelName: string): number {
     const address = labelToAddrMap[labelName];
@@ -141,33 +153,25 @@ function isRegister(value: string): boolean {
         operands.push(`${operand3}`);
       }
     }
-    MEMORY[args[0]] = operands.join(',');
+    memory.setValueAt(args[0], operands.join(','));
   });
   console.log('コンパイル完了');
-  console.log(MEMORY);
-
-  function getValueByAddress(address: MemoryAddress): WordValue {
-    return MEMORY[address];
-  }
-
-  function setValueByAddress(address: MemoryAddress, value: WordValue): void {
-    MEMORY[address] = value;
-  }
+  console.log(memory);
 
   REGISTERS[REGISTER_NAME.PR] = '0';
   while (REGISTERS[REGISTER_NAME.PR].length) {
     let currentAddress = Number(REGISTERS[REGISTER_NAME.PR]);
-    const instructionLine = MEMORY[currentAddress]
+    const instructionLine = memory.getValueAt(currentAddress);
     console.log(instructionLine);
     const args = instructionLine.split(',');
     const instruction = args[0];
     if (instruction === MACHINE_INSTRUCTION_NAME.LD) {
       // TODO: ここでレジスタ間の移動、指標レジスタ考慮を要実装
-      REGISTERS[`GR${args[1]}`] = getValueByAddress(Number.parseInt(args[3]));
+      REGISTERS[`GR${args[1]}`] = memory.getValueAt(Number.parseInt(args[3]));
       console.log(REGISTERS);
     }
     if (instruction === MACHINE_INSTRUCTION_NAME.ST) {
-      setValueByAddress(Number.parseInt(args[3]), REGISTERS[`GR${args[1]}`]);
+      memory.setValueAt(Number.parseInt(args[3]), REGISTERS[`GR${args[1]}`]);
     }
     if (instruction === MACHINE_INSTRUCTION_NAME.SUBA) {
       // TODO: ここでレジスタとメモリ間の比較を要実装
@@ -192,7 +196,7 @@ function isRegister(value: string): boolean {
         REGISTERS[REGISTER_NAME.SF] = '1';
         REGISTERS[REGISTER_NAME.ZF] = '0';
       }
-      console.log(REGISTERS); 
+      console.log(REGISTERS);
     }
     if (instruction === MACHINE_INSTRUCTION_NAME.JUMP) {
       REGISTERS[REGISTER_NAME.PR] = args[1];
@@ -213,7 +217,7 @@ function isRegister(value: string): boolean {
     if (instruction === MACHINE_INSTRUCTION_NAME.RET) {
       console.log('処理終了');
       console.log(REGISTERS);
-      console.log(MEMORY);
+      console.log(memory);
       break;
     }
     if (isOneWordInstruction(args[0])) {
