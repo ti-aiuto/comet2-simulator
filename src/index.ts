@@ -106,6 +106,8 @@ class Register {
     this.programCounter = value;
   }
 
+  // TODO: SPを定義
+
   private gRKeyNameOf(index: number): string {
     return `GR${index}`;
   }
@@ -114,20 +116,9 @@ class Register {
 (async function () {
   const source: (string[])[] = sampleSource;
 
-  // GRの後ろ、SPはいったん無視
-  const REGISTERS: { [key: string]: WordValue } = {
-    [REGISTER_NAME.PR]: '',
-    [REGISTER_NAME.GR0]: '',
-    [REGISTER_NAME.GR1]: '',
-    [REGISTER_NAME.GR2]: '',
-    [REGISTER_NAME.GR3]: '',
-    [REGISTER_NAME.GR4]: '',
-    [REGISTER_NAME.OF]: '',
-    [REGISTER_NAME.SF]: '',
-    [REGISTER_NAME.ZF]: ''
-  };
-
   const memory = new Memory();
+  const register = new Register();
+
   const toLateInit: [MemoryAddress, number][] = [];
 
   let wordCount = 0;
@@ -209,65 +200,63 @@ class Register {
   console.log('コンパイル完了');
   console.log(memory);
 
-  REGISTERS[REGISTER_NAME.PR] = '0';
-  while (REGISTERS[REGISTER_NAME.PR].length) {
-    let currentAddress = Number(REGISTERS[REGISTER_NAME.PR]);
+  // TODO: START命令からの値を入れるようにする
+  register.setProgramCounter(0);
+  while (true) {
+    let currentAddress = register.getProgramCounter();
     const instructionLine = memory.getValueAt(currentAddress);
     console.log(instructionLine);
     const args = instructionLine.split(',');
     const instruction = args[0];
     if (instruction === MACHINE_INSTRUCTION_NAME.LD) {
       // TODO: ここでレジスタ間の移動、指標レジスタ考慮を要実装
-      REGISTERS[`GR${args[1]}`] = memory.getValueAt(Number.parseInt(args[3]));
-      console.log(REGISTERS);
+      register.setGRAt(Number(args[1]),memory.getValueAt(Number.parseInt(args[3])) );
+      console.log(register);
     }
     if (instruction === MACHINE_INSTRUCTION_NAME.ST) {
-      memory.setValueAt(Number.parseInt(args[3]), REGISTERS[`GR${args[1]}`]);
+      memory.setValueAt(Number.parseInt(args[3]), register.getGRAt(Number(args[1])));
     }
     if (instruction === MACHINE_INSTRUCTION_NAME.SUBA) {
       // TODO: ここでレジスタとメモリ間の比較を要実装
-      const r1Value = Number(REGISTERS[`GR${args[1]}`]);
-      const r2Value = Number(REGISTERS[`GR${args[2]}`]);
-      REGISTERS[`GR${args[1]}`] = `${r1Value - r2Value}`;
-      console.log(REGISTERS);
+      const r1Value = Number(register.getGRAt(Number(args[1])));
+      const r2Value = Number(register.getGRAt(Number(args[2])));
+      register.setGRAt(Number(args[1]), `${r1Value - r2Value}`);
+      console.log(register);
     }
     if (instruction === MACHINE_INSTRUCTION_NAME.CPA) {
       // TODO: ここでレジスタとメモリ間の比較を要実装
-      const r1Value = Number(REGISTERS[`GR${args[1]}`]);
-      const r2Value = Number(REGISTERS[`GR${args[2]}`]);
+      // TODO: オーバーフロー要考慮
+      const r1Value = Number(register.getGRAt(Number(args[1])));
+      const r2Value = Number(register.getGRAt(Number(args[2])));
       const result = r1Value - r2Value;
-      REGISTERS[REGISTER_NAME.OF] = '0';
       if (result > 0) {
-        REGISTERS[REGISTER_NAME.SF] = '0';
-        REGISTERS[REGISTER_NAME.ZF] = '0';
+        register.setFlags(0, 0, 0);
       } else if (result === 0) {
-        REGISTERS[REGISTER_NAME.SF] = '0';
-        REGISTERS[REGISTER_NAME.ZF] = '1';
+        register.setFlags(0, 0, 1);
       } else {
-        REGISTERS[REGISTER_NAME.SF] = '1';
-        REGISTERS[REGISTER_NAME.ZF] = '0';
+        register.setFlags(0, 1, 0);
       }
-      console.log(REGISTERS);
+      console.log(register);
     }
     if (instruction === MACHINE_INSTRUCTION_NAME.JUMP) {
-      REGISTERS[REGISTER_NAME.PR] = args[3];
+      register.setProgramCounter(Number(args[3]));
       continue;
     }
     if (instruction === MACHINE_INSTRUCTION_NAME.JZE) {
-      if (REGISTERS[REGISTER_NAME.ZF] === '1') {
-        REGISTERS[REGISTER_NAME.PR] = args[3];
+      if (register.getZeroFlag() === 1) {
+        register.setProgramCounter(Number(args[3]));
         continue;
       }
     }
     if (instruction === MACHINE_INSTRUCTION_NAME.JMI) {
-      if (REGISTERS[REGISTER_NAME.SF] === '1') {
-        REGISTERS[REGISTER_NAME.PR] = args[3];
+      if (register.getSignFlag() === 1) {
+        register.setProgramCounter(Number(args[3]));
         continue;
       }
     }
     if (instruction === MACHINE_INSTRUCTION_NAME.RET) {
       console.log('処理終了');
-      console.log(REGISTERS);
+      console.log(register);
       console.log(memory);
       break;
     }
@@ -276,6 +265,6 @@ class Register {
     } else {
       currentAddress += 2
     }
-    REGISTERS[REGISTER_NAME.PR] = `${currentAddress}`;
+    register.setProgramCounter(currentAddress);
   }
 })();
