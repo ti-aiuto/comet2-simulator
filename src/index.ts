@@ -184,33 +184,30 @@ class Register {
 
   toLateInit.forEach(function (args) {
     const line = source[args[1]];
-    let firstValue = toInstructionNumber(line[1]) * 0x100;
-    let secoundValue = 0;
+    let word1 = toInstructionNumber(line[1]) * 0x100;
+    let word2 = 0;
     if (line[2].length) {
       if (isRegister(line[2])) {
-        firstValue |= Number(extractRegisterNumber(line[2])) * 0x10;
+        word1 |= Number(extractRegisterNumber(line[2])) * 0x10;
         if (line[3].length && isRegister(line[3])) {
-          firstValue |= Number(extractRegisterNumber(line[3]));
+          word1 |= Number(extractRegisterNumber(line[3]));
         } else if (line[4].length && isRegister(line[4])) {
-          firstValue |= Number(extractRegisterNumber(line[4]));
-        } else {
+          word1 |= Number(extractRegisterNumber(line[4]));
         }
       } else {
         // TODO: 本当はここでラベルかアドレスかの判定が必要
-        const operand2 = getAddressByLabel(line[2]);
-        secoundValue = operand2;
+        word2 = getAddressByLabel(line[2]);
       }
     }
     if (line[3].length) {
       if (!isRegister(line[3])) {
         // TODO: 本当はここでラベルかアドレスかの判定が必要
-        const operand3 = getAddressByLabel(line[3]);
-        secoundValue = operand3;
+        word2 = getAddressByLabel(line[3]);
       }
     }
-    memory.setValueAt(args[0], firstValue);
-    if (secoundValue !== 0) {
-      memory.setValueAt(args[0] + 1, secoundValue);
+    memory.setValueAt(args[0], word1);
+    if (word2 !== 0) {
+      memory.setValueAt(args[0] + 1, word2);
     }
   });
   console.log('コンパイル完了');
