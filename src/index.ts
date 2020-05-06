@@ -68,6 +68,10 @@ function isRegister(value: string): boolean {
   return Object.keys(REGISTER_NAME).includes(value);
 }
 
+function toWordHex(num: number): string {
+  return ('0000' + (num.toString(16))).slice(-4);
+}
+
 class Memory {
   private values: { [key: number]: WordValue } = {};
 
@@ -77,6 +81,14 @@ class Memory {
 
   setValueAt(address: MemoryAddress, value: WordValue) {
     this.values[address] = value;
+  }
+
+  toString(): string {
+    let result = '';
+    for(let [key, value] of Object.entries(this.values)) {
+      result += `${toWordHex(Number(key))}: ${toWordHex(Number(value))}\n`.toUpperCase()
+    }
+    return result.trim();
   }
 }
 
@@ -172,8 +184,8 @@ class Register {
     }
   });
   console.log('アセンブラ命令処理完了');
-  console.log(memory);
-
+  console.log(memory.toString());
+  
   function getAddressByLabel(labelName: string): number {
     const address = labelToAddrMap[labelName];
     if (!address) {
@@ -211,7 +223,7 @@ class Register {
     }
   });
   console.log('コンパイル完了');
-  console.log(memory);
+  console.log(memory.toString());
 
   // TODO: START命令からの値を入れるようにする
   register.setProgramCounter(0);
@@ -272,7 +284,7 @@ class Register {
     if (instruction === MACHINE_INSTRUCTION_NUMBER.RET) {
       console.log('処理終了');
       console.log(register);
-      console.log(memory);
+      console.log(memory.toString());
       break;
     }
     if (isOneWordInstruction(toInstructionName(instruction))) {
