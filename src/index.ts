@@ -1,7 +1,7 @@
 import { sampleSource } from './sample_source';
 
 type MemoryAddress = number;
-type WordValue = string;
+type WordValue = number;
 type FlagValue = 0 | 1;
 
 enum REGISTER_NAME {
@@ -146,24 +146,24 @@ class Register {
       return;
     }
     if (line[1] === PSEUDO_INSTRUCTION_NAME.DC) {
-      memory.setValueAt(wordCount, line[2]);
+      memory.setValueAt(wordCount, Number(line[2]));
       // TODO: ここで内容文の語数を確保する
       wordCount += 1;
     } else if (line[1] === PSEUDO_INSTRUCTION_NAME.DS) {
-      memory.setValueAt(wordCount, '');
+      memory.setValueAt(wordCount, 0);
       // TODO: ここで内容文の語数を確保する
       wordCount += 1;
     } else {
-      memory.setValueAt(wordCount, '');
+      memory.setValueAt(wordCount, 0);
       toLateInit.push([wordCount, index]);
       if (isMachineInstruction(line[1])) {
         if (isOneWordInstruction(line[1])) {
-          memory.setValueAt(wordCount, '');
+          memory.setValueAt(wordCount, 0);
           wordCount += 1;
         } else {
-          memory.setValueAt(wordCount, '');
+          memory.setValueAt(wordCount, 0);
           wordCount += 1;
-          memory.setValueAt(wordCount, '');
+          memory.setValueAt(wordCount, 0);
           wordCount += 1;
         }
       } else {
@@ -208,9 +208,9 @@ class Register {
         secoundValue = operand3;
       }
     }
-    memory.setValueAt(args[0], `${firstValue}`);
+    memory.setValueAt(args[0], firstValue);
     if (secoundValue !== 0) {
-      memory.setValueAt(args[0] + 1, `${secoundValue}`);
+      memory.setValueAt(args[0] + 1, secoundValue);
     }
   });
   console.log('コンパイル完了');
@@ -220,9 +220,9 @@ class Register {
   register.setProgramCounter(0);
   while (true) {
     let currentAddress = register.getProgramCounter();
-    const instructionLine = Number(memory.getValueAt(currentAddress));
+    const instructionLine = memory.getValueAt(currentAddress);
     console.log(instructionLine);
-    const addr = Number(memory.getValueAt(currentAddress + 1) || '0');
+    const addr = memory.getValueAt(currentAddress + 1);
     const instruction = (instructionLine & 0xFF00) >> 8;
     const gR = (instructionLine & 0xF0) >> 4;
     const gROrIR = instructionLine & 0xF;
@@ -236,16 +236,16 @@ class Register {
     }
     if (instruction === MACHINE_INSTRUCTION_NUMBER.SUBA) {
       // TODO: ここでレジスタとメモリ間の比較を要実装
-      const r1Value = Number(register.getGRAt(gR));
-      const r2Value = Number(register.getGRAt(gROrIR));
-      register.setGRAt(gR, `${r1Value - r2Value}`);
+      const r1Value = register.getGRAt(gR);
+      const r2Value = register.getGRAt(gROrIR);
+      register.setGRAt(gR, r1Value - r2Value);
       console.log(register);
     }
     if (instruction === MACHINE_INSTRUCTION_NUMBER.CPA) {
       // TODO: ここでレジスタとメモリ間の比較を要実装
       // TODO: オーバーフロー要考慮
-      const r1Value = Number(register.getGRAt(gR));
-      const r2Value = Number(register.getGRAt(gROrIR));
+      const r1Value = register.getGRAt(gR);
+      const r2Value = register.getGRAt(gROrIR);
       const result = r1Value - r2Value;
       if (result > 0) {
         register.setFlags(0, 0, 0);
