@@ -26,21 +26,25 @@ enum PSEUDO_INSTRUCTION_NAME {
   END = 'END'
 }
 
-enum MACHINE_INSTRUCTION_NAME {
-  LD = 'LD',
-  ST = 'ST',
-  CPA = 'CPA',
-  JZE = 'JZE',
-  JMI = 'JMI',
-  SUBA = 'SUBA',
-  JUMP = 'JUMP',
-  RET = 'RET'
-}
+const MACHINE_INSTRUCTION_NUMBER: { [key: string]: number } = Object.freeze({
+  LD: 0x10,
+  ST: 0x11,
+  CPA: 0x40,
+  JZE: 0x63,
+  JMI: 0x61,
+  SUBA: 0x25,
+  JUMP: 0x64,
+  RET: 0x81
+});
 
 const ONE_WORD_INSTRUCTION_NAMES = ['RET'];
 
 function isMachineInstruction(value: string): boolean {
-  return Object.keys(MACHINE_INSTRUCTION_NAME).includes(value);
+  return Object.keys(MACHINE_INSTRUCTION_NUMBER).includes(value);
+}
+
+function toInstructionNumber(name: string): number {
+  return MACHINE_INSTRUCTION_NUMBER[name];
 }
 
 function isOneWordInstruction(value: string): boolean {
@@ -172,7 +176,7 @@ class Register {
   toLateInit.forEach(function (args) {
     const line = source[args[1]];
     const operands = [];
-    operands.push(line[1]);
+    operands.push(toInstructionNumber(line[1]));
     if (line[2].length) {
       if (isRegister(line[2])) {
         operands.push(extractRegisterNumber(line[2]));
@@ -219,23 +223,23 @@ class Register {
     const valueLine = memory.getValueAt(currentAddress + 1) || '';
     const args = instructionLine.split(',');
     const valueArgs = valueLine.split(',');
-    const instruction = args[0];
-    if (instruction === MACHINE_INSTRUCTION_NAME.LD) {
+    const instruction = Number(args[0]);
+    if (instruction === MACHINE_INSTRUCTION_NUMBER.LD) {
       // TODO: ここでレジスタ間の移動、指標レジスタ考慮を要実装
-      register.setGRAt(Number(args[1]),memory.getValueAt(Number.parseInt(valueArgs[0])) );
+      register.setGRAt(Number(args[1]), memory.getValueAt(Number.parseInt(valueArgs[0])));
       console.log(register);
     }
-    if (instruction === MACHINE_INSTRUCTION_NAME.ST) {
+    if (instruction === MACHINE_INSTRUCTION_NUMBER.ST) {
       memory.setValueAt(Number.parseInt(valueArgs[0]), register.getGRAt(Number(args[1])));
     }
-    if (instruction === MACHINE_INSTRUCTION_NAME.SUBA) {
+    if (instruction === MACHINE_INSTRUCTION_NUMBER.SUBA) {
       // TODO: ここでレジスタとメモリ間の比較を要実装
       const r1Value = Number(register.getGRAt(Number(args[1])));
       const r2Value = Number(register.getGRAt(Number(args[2])));
       register.setGRAt(Number(args[1]), `${r1Value - r2Value}`);
       console.log(register);
     }
-    if (instruction === MACHINE_INSTRUCTION_NAME.CPA) {
+    if (instruction === MACHINE_INSTRUCTION_NUMBER.CPA) {
       // TODO: ここでレジスタとメモリ間の比較を要実装
       // TODO: オーバーフロー要考慮
       const r1Value = Number(register.getGRAt(Number(args[1])));
@@ -250,23 +254,23 @@ class Register {
       }
       console.log(register);
     }
-    if (instruction === MACHINE_INSTRUCTION_NAME.JUMP) {
+    if (instruction === MACHINE_INSTRUCTION_NUMBER.JUMP) {
       register.setProgramCounter(Number(valueArgs[0]));
       continue;
     }
-    if (instruction === MACHINE_INSTRUCTION_NAME.JZE) {
+    if (instruction === MACHINE_INSTRUCTION_NUMBER.JZE) {
       if (register.getZeroFlag() === 1) {
         register.setProgramCounter(Number(valueArgs[0]));
         continue;
       }
     }
-    if (instruction === MACHINE_INSTRUCTION_NAME.JMI) {
+    if (instruction === MACHINE_INSTRUCTION_NUMBER.JMI) {
       if (register.getSignFlag() === 1) {
         register.setProgramCounter(Number(valueArgs[0]));
         continue;
       }
     }
-    if (instruction === MACHINE_INSTRUCTION_NAME.RET) {
+    if (instruction === MACHINE_INSTRUCTION_NUMBER.RET) {
       console.log('処理終了');
       console.log(register);
       console.log(memory);
