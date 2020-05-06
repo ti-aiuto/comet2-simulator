@@ -145,9 +145,13 @@ class Register {
       toLateInit.push([wordCount, index]);
       if (isMachineInstruction(line[1])) {
         if (isOneWordInstruction(line[1])) {
+          memory.setValueAt(wordCount, '');
           wordCount += 1;
         } else {
-          wordCount += 2;
+          memory.setValueAt(wordCount, '');
+          wordCount += 1;
+          memory.setValueAt(wordCount, '');
+          wordCount += 1;
         }
       } else {
         throw new Error(`未実装 ${line[1]}`);
@@ -195,7 +199,13 @@ class Register {
         operands.push(`${operand3}`);
       }
     }
-    memory.setValueAt(args[0], operands.join(','));
+    // TODO: 本当はここで語単位にまとめていきたい
+    if (operands.length <= 3) {
+      memory.setValueAt(args[0], operands.join(','));
+    } else {
+      memory.setValueAt(args[0], operands.slice(0, 3).join(','));
+      memory.setValueAt(args[0] + 1, operands.slice(3, 4).join(','));
+    }
   });
   console.log('コンパイル完了');
   console.log(memory);
@@ -206,15 +216,17 @@ class Register {
     let currentAddress = register.getProgramCounter();
     const instructionLine = memory.getValueAt(currentAddress);
     console.log(instructionLine);
+    const valueLine = memory.getValueAt(currentAddress + 1) || '';
     const args = instructionLine.split(',');
+    const valueArgs = valueLine.split(',');
     const instruction = args[0];
     if (instruction === MACHINE_INSTRUCTION_NAME.LD) {
       // TODO: ここでレジスタ間の移動、指標レジスタ考慮を要実装
-      register.setGRAt(Number(args[1]),memory.getValueAt(Number.parseInt(args[3])) );
+      register.setGRAt(Number(args[1]),memory.getValueAt(Number.parseInt(valueArgs[0])) );
       console.log(register);
     }
     if (instruction === MACHINE_INSTRUCTION_NAME.ST) {
-      memory.setValueAt(Number.parseInt(args[3]), register.getGRAt(Number(args[1])));
+      memory.setValueAt(Number.parseInt(valueArgs[0]), register.getGRAt(Number(args[1])));
     }
     if (instruction === MACHINE_INSTRUCTION_NAME.SUBA) {
       // TODO: ここでレジスタとメモリ間の比較を要実装
@@ -239,18 +251,18 @@ class Register {
       console.log(register);
     }
     if (instruction === MACHINE_INSTRUCTION_NAME.JUMP) {
-      register.setProgramCounter(Number(args[3]));
+      register.setProgramCounter(Number(valueArgs[0]));
       continue;
     }
     if (instruction === MACHINE_INSTRUCTION_NAME.JZE) {
       if (register.getZeroFlag() === 1) {
-        register.setProgramCounter(Number(args[3]));
+        register.setProgramCounter(Number(valueArgs[0]));
         continue;
       }
     }
     if (instruction === MACHINE_INSTRUCTION_NAME.JMI) {
       if (register.getSignFlag() === 1) {
-        register.setProgramCounter(Number(args[3]));
+        register.setProgramCounter(Number(valueArgs[0]));
         continue;
       }
     }
