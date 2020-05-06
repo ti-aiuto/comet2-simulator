@@ -2,6 +2,7 @@ import { sampleSource } from './sample_source';
 
 type MemoryAddress = number;
 type WordValue = string;
+type FlagValue = 0 | 1;
 
 enum REGISTER_NAME {
   PR = 'PR',
@@ -10,6 +11,9 @@ enum REGISTER_NAME {
   GR2 = 'GR2',
   GR3 = 'GR3',
   GR4 = 'GR4',
+  GR5 = 'GR5',
+  GR6 = 'GR6',
+  GR7 = 'GR7',
   OF = 'OF',
   SF = 'SF',
   ZF = 'ZF'
@@ -60,6 +64,50 @@ class Memory {
 
   setValueAt(address: MemoryAddress, value: WordValue) {
     this.values[address] = value;
+  }
+}
+
+class Register {
+  private programCounter: MemoryAddress = 0;
+  private gRValues: { [key: string]: WordValue } = {};
+  private flagValues: { [key: string]: FlagValue } = {};
+
+  getSignFlag(): FlagValue {
+    return this.flagValues[REGISTER_NAME.SF];
+  }
+
+  getZeroFlag(): FlagValue {
+    return this.flagValues[REGISTER_NAME.ZF];
+  }
+
+  getOverflowFlag(): FlagValue {
+    return this.flagValues[REGISTER_NAME.OF];
+  }
+
+  setFlags(o: FlagValue, s: FlagValue, z: FlagValue) {
+    this.flagValues[REGISTER_NAME.OF] = o;
+    this.flagValues[REGISTER_NAME.SF] = s;
+    this.flagValues[REGISTER_NAME.ZF] = z;
+  }
+
+  getGRAt(index: number): WordValue {
+    return this.gRValues[this.gRKeyNameOf(index)];
+  }
+
+  setGRAt(index: number, value: WordValue) {
+    this.gRValues[this.gRKeyNameOf(index)] = value;
+  }
+
+  getProgramCounter(): MemoryAddress {
+    return this.programCounter;
+  }
+
+  setProgramCounter(value: MemoryAddress) {
+    this.programCounter = value;
+  }
+
+  private gRKeyNameOf(index: number): string {
+    return `GR${index}`;
   }
 }
 
