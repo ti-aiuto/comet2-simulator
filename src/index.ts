@@ -141,6 +141,9 @@ class Memory {
           operands.push('0');
         }
       } else {
+        // 汎用レジスタ指標レジスタ部分のスペースを埋める
+        operands.push('0');
+        operands.push('0');
         // TODO: 本当はここでラベルかアドレスかの判定が必要
         const operand2 = getAddressByLabel(line[2]);
         operands.push(`${operand2}`);
@@ -199,18 +202,18 @@ class Memory {
       console.log(REGISTERS);
     }
     if (instruction === MACHINE_INSTRUCTION_NAME.JUMP) {
-      REGISTERS[REGISTER_NAME.PR] = args[1];
+      REGISTERS[REGISTER_NAME.PR] = args[3];
       continue;
     }
     if (instruction === MACHINE_INSTRUCTION_NAME.JZE) {
       if (REGISTERS[REGISTER_NAME.ZF] === '1') {
-        REGISTERS[REGISTER_NAME.PR] = args[1];
+        REGISTERS[REGISTER_NAME.PR] = args[3];
         continue;
       }
     }
     if (instruction === MACHINE_INSTRUCTION_NAME.JMI) {
       if (REGISTERS[REGISTER_NAME.SF] === '1') {
-        REGISTERS[REGISTER_NAME.PR] = args[1];
+        REGISTERS[REGISTER_NAME.PR] = args[3];
         continue;
       }
     }
