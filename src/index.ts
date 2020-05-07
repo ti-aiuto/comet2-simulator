@@ -59,6 +59,10 @@ function convertFirstWord(args: string[]): WordValue {
   return word;
 }
 
+function hasSecondWord(args: string[]): boolean {
+  return args[2].length > 0 && !isGeneralRegister(args[2]) || args[3].length > 0 && !isGeneralRegister(args[3]);
+}
+
 function toWordHex(num: number): string {
   return ('0000' + (num.toString(16))).slice(-4);
 }
@@ -169,7 +173,7 @@ class Register {
       if (isMachineInstruction(line[1])) {
         memory.setValueAt(wordCount, convertFirstWord(line));
         wordCount += 1;
-        if (line[2].length && !isGeneralRegister(line[2]) || line[3].length && !isGeneralRegister(line[3])) {
+        if (hasSecondWord(line)) {
           memory.setValueAt(wordCount, 0);
           wordCount += 1;
         }
