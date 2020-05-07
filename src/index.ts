@@ -28,6 +28,15 @@ function isMachineInstruction(value: string): boolean {
   return (MACHINE_INSTRUCTION_NAMES as Readonly<string[]>).includes(value);
 }
 
+function extractRegisterNumber(value: string): number {
+  return Number(value.slice(-1));
+}
+
+function isGeneralRegister(value: string): boolean {
+  return (GENERAL_REGISTER_NAMES as Readonly<string[]>).includes(value);
+}
+
+
 function toInstructionNumber(name: string): number {
   if (isMachineInstruction(name)) {
     return MACHINE_INSTRUCTION_NUMBER[name as MachineInsttructionName];
@@ -35,21 +44,19 @@ function toInstructionNumber(name: string): number {
   throw new Error(`未定義の機械語 ${name}`);
 }
 
-function toInstructionName(num: number): string {
-  for (let [key, value] of Object.entries(MACHINE_INSTRUCTION_NUMBER)) {
-    if (num === value) {
-      return key;
+function convertFirstWord(args: string[]): WordValue {
+  let word = toInstructionNumber(args[1]) * 0x100;
+  if (args[2].length) {
+    if (isGeneralRegister(args[2])) {
+      word |= extractRegisterNumber(args[2]) * 0x10;
+      if (args[3].length && isGeneralRegister(args[3])) {
+        word |= extractRegisterNumber(args[3]);
+      } else if (args[4].length && isGeneralRegister(args[4])) {
+        word |= extractRegisterNumber(args[4]);
+      }
     }
   }
-  throw new Error(`未定義 ${num}`);
-}
-
-function extractRegisterNumber(value: string): string {
-  return value.slice(-1);
-}
-
-function isGeneralRegister(value: string): boolean {
-  return (GENERAL_REGISTER_NAMES as Readonly<string[]>).includes(value);
+  return word;
 }
 
 function toWordHex(num: number): string {
@@ -187,28 +194,16 @@ class Register {
 
   toLateInit.forEach(function (args) {
     const line = source[args[1]];
-    let word1 = toInstructionNumber(line[1]) * 0x100;
     let word2 = 0;
-    if (line[2].length) {
-      if (isGeneralRegister(line[2])) {
-        word1 |= Number(extractRegisterNumber(line[2])) * 0x10;
-        if (line[3].length && isGeneralRegister(line[3])) {
-          word1 |= Number(extractRegisterNumber(line[3]));
-        } else if (line[4].length && isGeneralRegister(line[4])) {
-          word1 |= Number(extractRegisterNumber(line[4]));
-        }
-      } else {
+    if (line[2].length && !isGeneralRegister(line[2])) {
         // TODO: 本当はここでラベルかアドレスかの判定が必要
         word2 = getAddressByLabel(line[2]);
-      }
     }
-    if (line[3].length) {
-      if (!isGeneralRegister(line[3])) {
+    if (line[3].length && !isGeneralRegister(line[3])) {
         // TODO: 本当はここでラベルかアドレスかの判定が必要
         word2 = getAddressByLabel(line[3]);
-      }
     }
-    memory.setValueAt(args[0], word1);
+    memory.setValueAt(args[0], convertFirstWord(line));
     if (word2 !== 0) {
       memory.setValueAt(args[0] + 1, word2);
     }
