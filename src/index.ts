@@ -48,7 +48,7 @@ function extractRegisterNumber(value: string): string {
   return value.slice(-1);
 }
 
-function isRegister(value: string): boolean {
+function isGeneralRegister(value: string): boolean {
   return (GENERAL_REGISTER_NAMES as Readonly<string[]>).includes(value);
 }
 
@@ -160,7 +160,7 @@ class Register {
       memory.setValueAt(wordCount, 0);
       toLateInit.push([wordCount, index]);
       if (isMachineInstruction(line[1])) {
-        if (line[2].length && !isRegister(line[2]) || line[3].length && !isRegister(line[3])) {
+        if (line[2].length && !isGeneralRegister(line[2]) || line[3].length && !isGeneralRegister(line[3])) {
           memory.setValueAt(wordCount, 0);
           wordCount += 1;
           memory.setValueAt(wordCount, 0);
@@ -190,11 +190,11 @@ class Register {
     let word1 = toInstructionNumber(line[1]) * 0x100;
     let word2 = 0;
     if (line[2].length) {
-      if (isRegister(line[2])) {
+      if (isGeneralRegister(line[2])) {
         word1 |= Number(extractRegisterNumber(line[2])) * 0x10;
-        if (line[3].length && isRegister(line[3])) {
+        if (line[3].length && isGeneralRegister(line[3])) {
           word1 |= Number(extractRegisterNumber(line[3]));
-        } else if (line[4].length && isRegister(line[4])) {
+        } else if (line[4].length && isGeneralRegister(line[4])) {
           word1 |= Number(extractRegisterNumber(line[4]));
         }
       } else {
@@ -203,7 +203,7 @@ class Register {
       }
     }
     if (line[3].length) {
-      if (!isRegister(line[3])) {
+      if (!isGeneralRegister(line[3])) {
         // TODO: 本当はここでラベルかアドレスかの判定が必要
         word2 = getAddressByLabel(line[3]);
       }
