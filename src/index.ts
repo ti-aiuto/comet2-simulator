@@ -58,8 +58,12 @@ class LineAnalyzer {
     return null;
   }
 
-  parseInstruction(): string  {
+  parseInstruction(): string {
     return this.args[1];
+  }
+
+  isPseudoInstruction(): boolean {
+    return ['START', 'END', 'DC', 'DS'].includes(this.parseInstruction());
   }
 
   buildFirstWord(): WordValue {
@@ -145,20 +149,8 @@ class Compiler {
       if (label) {
         this.labelToAddrMap[label] = currentAddress;
       }
-      if (instruction === 'START' || instruction === 'END') {
-        // TODO: STARTの引数をとるようにする
-        return;
-      }
-      if (instruction === 'DC') {
-        this.memory.setValueAt(currentAddress, Number(args[2]));
-        // TODO: ここで内容分の語数を確保する
-        currentAddress += 1;
-        return;
-      }
-      if (instruction === 'DS') {
-        this.memory.setValueAt(currentAddress, 0);
-        // TODO: ここで内容分の語数を確保する
-        currentAddress += 1;
+      if (this.lineAnalyzer.isPseudoInstruction()) {
+        currentAddress += this.compilePseudoInstruction(currentAddress, args);
         return;
       }
       this.memory.setValueAt(currentAddress, this.lineAnalyzer.buildFirstWord());
@@ -189,6 +181,29 @@ class Compiler {
     });
     console.log('コンパイル完了');
     console.log(this.memory.toString());
+  }
+
+  private compilePseudoInstruction(currentAddress: number, args: string[]): number {
+    const instruction = this.lineAnalyzer.parseInstruction();
+    if (instruction === 'START' || instruction === 'END') {
+      // TODO: STARTの引数をとるようにする
+      return 0;
+    }
+    if (instruction === 'DC') {
+      this.memory.setValueAt(currentAddress, Number(args[2]));
+      // TODO: ここで内容分の語数を確保する
+      return 1;
+    }
+    if (instruction === 'DS') {
+      this.memory.setValueAt(currentAddress, 0);
+      // TODO: ここで内容分の語数を確保する
+      return 1;
+    }
+    throw new Error(`不正な疑似命令 ${instruction}`);
+  }
+
+  private compileMachineInstruction(currentAddress: number, args: string[]) {
+
   }
 }
 
