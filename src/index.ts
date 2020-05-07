@@ -174,18 +174,17 @@ class Register {
       // TODO: ここで内容文の語数を確保する
       wordCount += 1;
     } else {
-      memory.setValueAt(wordCount, 0);
-      toLateInit.push([wordCount, index]);
-      if (isMachineInstruction(line[1])) {
-        memory.setValueAt(wordCount, convertFirstWord(line));
-        wordCount += 1;
-        const addrRaw = extractAddrRawValue(line);
-        if (addrRaw) {
-          memory.setValueAt(wordCount, 0);
-          wordCount += 1;
-        }
-      } else {
+      if (!isMachineInstruction(line[1])) {
         throw new Error(`未実装 ${line[1]}`);
+      }
+      memory.setValueAt(wordCount, convertFirstWord(line));
+      const addrRaw = extractAddrRawValue(line);
+      if (addrRaw) {
+        toLateInit.push([wordCount, index]);
+        memory.setValueAt(wordCount + 1, 0);
+        wordCount += 2;
+      } else {
+        wordCount += 1;
       }
     }
   });
