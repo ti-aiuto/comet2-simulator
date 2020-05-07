@@ -10,7 +10,10 @@ const GENERAL_REGISTER_NAMES = ['GR0', 'GR1', 'GR2', 'GR3', 'GR4', 'GR5', 'GR6',
 type FlagRegisterName = typeof FLAG_REGISTER_NAMES[number];
 type GeneralRegisterName = typeof GENERAL_REGISTER_NAMES[number];
 
-const MACHINE_INSTRUCTION_NUMBER: { [key: string]: number } = Object.freeze({
+const MACHINE_INSTRUCTION_NAMES = ['LD', 'ST', 'CPA', 'JZE', 'JMI', 'SUBA', 'JUMP', 'RET'] as const;
+type MachineInsttructionName = typeof MACHINE_INSTRUCTION_NAMES[number];
+
+const MACHINE_INSTRUCTION_NUMBER: { [key in MachineInsttructionName]: number } = Object.freeze({
   LD: 0x10,
   ST: 0x11,
   CPA: 0x40,
@@ -24,11 +27,14 @@ const MACHINE_INSTRUCTION_NUMBER: { [key: string]: number } = Object.freeze({
 const ONE_WORD_INSTRUCTION_NAMES = ['RET'];
 
 function isMachineInstruction(value: string): boolean {
-  return Object.keys(MACHINE_INSTRUCTION_NUMBER).includes(value);
+  return (MACHINE_INSTRUCTION_NAMES as Readonly<string[]>).includes(value);
 }
 
 function toInstructionNumber(name: string): number {
-  return MACHINE_INSTRUCTION_NUMBER[name];
+  if (isMachineInstruction(name)) {
+    return MACHINE_INSTRUCTION_NUMBER[name as MachineInsttructionName];
+  }
+  throw new Error(`未定義の機械語 ${name}`);
 }
 
 function toInstructionName(num: number): string {
