@@ -18,10 +18,6 @@ const MACHINE_INSTRUCTION_NUMBER: { [key: string]: number } = Object.freeze({
   RET: 0x81
 });
 
-function isMachineInstruction(value: string): boolean {
-  return Object.keys(MACHINE_INSTRUCTION_NUMBER).includes(value);
-}
-
 function extractRegisterNumber(value: string): number {
   return Number(value.slice(-1));
 }
@@ -66,6 +62,76 @@ function extractAddrRawValue(args: string[]): string | null {
 function isLabel(value: string): boolean {
   // TODO: 本当はここでラベルかアドレスかの判定が必要
   return true;
+}
+
+class Compiler {
+  private labelAddrsToReplace: [MemoryAddress, string][] = [];
+
+  constructor(
+    private memory: Memory,
+    private source: string[][],
+    private labelToAddrMap: { [key: string]: MemoryAddress }) {
+  }
+
+  compile() {
+    this.compilePseudoInstructions();
+    this.compileMachineInstructions();
+  }
+
+  private compilePseudoInstructions() {
+    let wordCount = 0;
+    // まずラベルの対応付け、DC, DSを処理する
+    this.source.forEach((args) => {
+      const [label, instruction] = args;
+      if (label.length) {
+        this.labelToAddrMap[args[0]] = wordCount;
+      }
+      if (instruction === 'START' || instruction === 'END') {
+        // TODO: STARTの引数をとるようにする
+        return;
+      }
+      if (instruction === 'DC') {
+        this.memory.setValueAt(wordCount, Number(args[2]));
+        // TODO: ここで内容分の語数を確保する
+        wordCount += 1;
+        return;
+      }
+      if (instruction === 'DS') {
+        this.memory.setValueAt(wordCount, 0);
+        // TODO: ここで内容分の語数を確保する
+        wordCount += 1;
+        return;
+      }
+
+      this.memory.setValueAt(wordCount, convertFirstWord(args));
+      wordCount += 1;
+      const addrRaw = extractAddrRawValue(args);
+      if (!addrRaw) {
+        return;
+      }
+      this.memory.setValueAt(wordCount, 0);
+      if (isLabel(addrRaw)) {
+        this.labelAddrsToReplace.push([wordCount, addrRaw]);
+      } else {
+        // TODO: 値を変換してセットする
+      }
+      wordCount += 1;
+    });
+    console.log('アセンブラ命令処理完了');
+    console.log(this.memory.toString());
+  }
+
+  private compileMachineInstructions() {
+    this.labelAddrsToReplace.forEach(([address, label]) => {
+      const value = this.labelToAddrMap[label];
+      if (!value) {
+        throw new Error(`未定義のラベル ${label}`);
+      }
+      this.memory.setValueAt(address, this.labelToAddrMap[label]);
+    });
+    console.log('コンパイル完了');
+    console.log(this.memory.toString());
+  }
 }
 
 function toWordHex(num: number): string {
@@ -151,58 +217,7 @@ class Register {
   const memory = new Memory();
   const register = new Register();
 
-  let wordCount = 0;
-  const labelToAddrMap: { [key: string]: MemoryAddress } = {};
-  const labelAddrsToReplace: [MemoryAddress, string][] = [];
-  // まずラベルの対応付け、DC, DSを処理する
-  source.forEach(function (line, index) {
-    const [label, instruction] = line;
-    if (label.length) {
-      labelToAddrMap[line[0]] = wordCount;
-    }
-    if (instruction === 'START' || instruction === 'END') {
-      // TODO: STARTの引数をとるようにする
-      return;
-    }
-    if (instruction === 'DC') {
-      memory.setValueAt(wordCount, Number(line[2]));
-      // TODO: ここで内容分の語数を確保する
-      wordCount += 1;
-    } else if (instruction === 'DS') {
-      memory.setValueAt(wordCount, 0);
-      // TODO: ここで内容分の語数を確保する
-      wordCount += 1;
-    } else {
-      if (!isMachineInstruction(instruction)) {
-        throw new Error(`未実装 ${instruction}`);
-      }
-      memory.setValueAt(wordCount, convertFirstWord(line));
-      wordCount += 1;
-      const addrRaw = extractAddrRawValue(line);
-      if (!addrRaw) {
-        return;
-      }
-      memory.setValueAt(wordCount, 0);
-      if (isLabel(addrRaw)) {
-        labelAddrsToReplace.push([wordCount, addrRaw]);
-      } else {
-        // TODO: 値を変換してセットする
-      }
-      wordCount += 1;
-    }
-  });
-  console.log('アセンブラ命令処理完了');
-  console.log(memory.toString());
-
-  labelAddrsToReplace.forEach(function([address, label]) {
-    const value =  labelToAddrMap[label];
-    if (!value) {
-      throw new Error(`未定義のラベル ${label}`);
-    }
-    memory.setValueAt(address, labelToAddrMap[label]);
-  });
-  console.log('コンパイル完了');
-  console.log(memory.toString());
+  new Compiler(memory, source, {}).compile();
 
   // TODO: START命令からの値を入れるようにする
   register.setProgramCounter(0);
