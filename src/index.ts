@@ -191,7 +191,7 @@ class Compiler {
       return 1;
     }
     const nextAddress = currentAddress + 1;
-    let addrLabel = this.lineAnalyzer.parseAddrLabel();
+    const addrLabel = this.lineAnalyzer.parseAddrLabel();
     if (addrLabel) {
       this.memory.setValueAt(nextAddress, 0);
       this.labelAddrsToReplace.push([nextAddress, addrLabel]);
