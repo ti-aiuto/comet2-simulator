@@ -167,12 +167,9 @@ class Register {
       memory.setValueAt(wordCount, 0);
       toLateInit.push([wordCount, index]);
       if (isMachineInstruction(line[1])) {
+        memory.setValueAt(wordCount, convertFirstWord(line));
+        wordCount += 1;
         if (line[2].length && !isGeneralRegister(line[2]) || line[3].length && !isGeneralRegister(line[3])) {
-          memory.setValueAt(wordCount, 0);
-          wordCount += 1;
-          memory.setValueAt(wordCount, 0);
-          wordCount += 1;
-        } else {
           memory.setValueAt(wordCount, 0);
           wordCount += 1;
         }
@@ -196,14 +193,13 @@ class Register {
     const line = source[args[1]];
     let word2 = 0;
     if (line[2].length && !isGeneralRegister(line[2])) {
-        // TODO: 本当はここでラベルかアドレスかの判定が必要
-        word2 = getAddressByLabel(line[2]);
+      // TODO: 本当はここでラベルかアドレスかの判定が必要
+      word2 = getAddressByLabel(line[2]);
     }
     if (line[3].length && !isGeneralRegister(line[3])) {
-        // TODO: 本当はここでラベルかアドレスかの判定が必要
-        word2 = getAddressByLabel(line[3]);
+      // TODO: 本当はここでラベルかアドレスかの判定が必要
+      word2 = getAddressByLabel(line[3]);
     }
-    memory.setValueAt(args[0], convertFirstWord(line));
     if (word2 !== 0) {
       memory.setValueAt(args[0] + 1, word2);
     }
