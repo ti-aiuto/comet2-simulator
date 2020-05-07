@@ -153,19 +153,7 @@ class Compiler {
         currentAddress += this.compilePseudoInstruction(currentAddress, args);
         return;
       }
-      this.memory.setValueAt(currentAddress, this.lineAnalyzer.buildFirstWord());
-      currentAddress += 1;
-      if (!this.lineAnalyzer.hasAddrValue()) {
-        return;
-      }
-      let addrLabel = this.lineAnalyzer.parseAddrLabel();
-      if (addrLabel) {
-        this.memory.setValueAt(currentAddress, 0);
-        this.labelAddrsToReplace.push([currentAddress, addrLabel]);
-      } else {
-        this.memory.setValueAt(currentAddress, this.lineAnalyzer.parseAddrValue());
-      }
-      currentAddress += 1;
+      currentAddress += this.compileMachineInstruction(currentAddress, args);
     });
     console.log('アセンブラ命令処理完了');
     console.log(this.memory.toString());
@@ -203,7 +191,19 @@ class Compiler {
   }
 
   private compileMachineInstruction(currentAddress: number, args: string[]) {
-
+    this.memory.setValueAt(currentAddress, this.lineAnalyzer.buildFirstWord());
+    if (!this.lineAnalyzer.hasAddrValue()) {
+      return 1;
+    }
+    const nextAddress = currentAddress + 1;
+    let addrLabel = this.lineAnalyzer.parseAddrLabel();
+    if (addrLabel) {
+      this.memory.setValueAt(nextAddress, 0);
+      this.labelAddrsToReplace.push([nextAddress, addrLabel]);
+    } else {
+      this.memory.setValueAt(nextAddress, this.lineAnalyzer.parseAddrValue());
+    }
+    return 2;
   }
 }
 
