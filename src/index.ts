@@ -4,16 +4,10 @@ type MemoryAddress = number;
 type WordValue = number;
 type FlagValue = 0 | 1;
 
-const FLAG_REGISTER_NAMES = ['OF', 'SF', 'ZF'] as const;
 const GENERAL_REGISTER_NAMES = ['GR0', 'GR1', 'GR2', 'GR3', 'GR4', 'GR5', 'GR6', 'GR7'] as const;
-
-type FlagRegisterName = typeof FLAG_REGISTER_NAMES[number];
 type GeneralRegisterName = typeof GENERAL_REGISTER_NAMES[number];
 
-const MACHINE_INSTRUCTION_NAMES = ['LD', 'ST', 'CPA', 'JZE', 'JMI', 'SUBA', 'JUMP', 'RET'] as const;
-type MachineInsttructionName = typeof MACHINE_INSTRUCTION_NAMES[number];
-
-const MACHINE_INSTRUCTION_NUMBER: { [key in MachineInsttructionName]: number } = Object.freeze({
+const MACHINE_INSTRUCTION_NUMBER: { [key: string]: number } = Object.freeze({
   LD: 0x10,
   ST: 0x11,
   CPA: 0x40,
@@ -25,7 +19,7 @@ const MACHINE_INSTRUCTION_NUMBER: { [key in MachineInsttructionName]: number } =
 });
 
 function isMachineInstruction(value: string): boolean {
-  return (MACHINE_INSTRUCTION_NAMES as Readonly<string[]>).includes(value);
+  return Object.keys(MACHINE_INSTRUCTION_NUMBER).includes(value);
 }
 
 function extractRegisterNumber(value: string): number {
@@ -37,8 +31,9 @@ function isGeneralRegister(value: string): boolean {
 }
 
 function toInstructionNumber(name: string): number {
-  if (isMachineInstruction(name)) {
-    return MACHINE_INSTRUCTION_NUMBER[name as MachineInsttructionName];
+  const value = MACHINE_INSTRUCTION_NUMBER[name];
+  if (value) {
+    return value;
   }
   throw new Error(`未定義の機械語 ${name}`);
 }
@@ -103,7 +98,7 @@ class Register {
     'GR0': 0, 'GR1': 0, 'GR2': 0, 'GR3': 0, 'GR4': 0,
     'GR5': 0, 'GR6': 0, 'GR7': 0
   };
-  private flagValues: { [key in FlagRegisterName]: FlagValue } = { OF: 0, SF: 0, ZF: 0 };
+  private flagValues: { [key in 'OF' | 'SF' | 'ZF']: FlagValue } = { OF: 0, SF: 0, ZF: 0 };
 
   getSignFlag(): FlagValue {
     return this.flagValues['SF'];
@@ -171,11 +166,11 @@ class Register {
     }
     if (instruction === 'DC') {
       memory.setValueAt(wordCount, Number(line[2]));
-      // TODO: ここで内容文の語数を確保する
+      // TODO: ここで内容分の語数を確保する
       wordCount += 1;
     } else if (instruction === 'DS') {
       memory.setValueAt(wordCount, 0);
-      // TODO: ここで内容文の語数を確保する
+      // TODO: ここで内容分の語数を確保する
       wordCount += 1;
     } else {
       if (!isMachineInstruction(instruction)) {
