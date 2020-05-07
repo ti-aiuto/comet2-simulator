@@ -58,12 +58,8 @@ class LineAnalyzer {
     return null;
   }
 
-  parseInstruction(): string {
-    return this.args[1];
-  }
-
   isPseudoInstruction(): boolean {
-    return ['START', 'END', 'DC', 'DS'].includes(this.parseInstruction());
+    return ['START', 'END', 'DC', 'DS'].includes(this.args[1]);
   }
 
   buildFirstWord(): WordValue {
@@ -145,7 +141,6 @@ class Compiler {
     this.source.forEach((args) => {
       this.lineAnalyzer.update(args);
       const label = this.lineAnalyzer.parseLabel();
-      const instruction = this.lineAnalyzer.parseInstruction();
       if (label) {
         this.labelToAddrMap[label] = currentAddress;
       }
@@ -172,7 +167,7 @@ class Compiler {
   }
 
   private compilePseudoInstruction(currentAddress: number, args: string[]): number {
-    const instruction = this.lineAnalyzer.parseInstruction();
+    const instruction = args[1];
     if (instruction === 'START' || instruction === 'END') {
       // TODO: STARTの引数をとるようにする
       return 0;
