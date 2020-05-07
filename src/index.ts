@@ -24,8 +24,6 @@ const MACHINE_INSTRUCTION_NUMBER: { [key in MachineInsttructionName]: number } =
   RET: 0x81
 });
 
-const ONE_WORD_INSTRUCTION_NAMES = ['RET'];
-
 function isMachineInstruction(value: string): boolean {
   return (MACHINE_INSTRUCTION_NAMES as Readonly<string[]>).includes(value);
 }
@@ -44,10 +42,6 @@ function toInstructionName(num: number): string {
     }
   }
   throw new Error(`未定義 ${num}`);
-}
-
-function isOneWordInstruction(value: string): boolean {
-  return ONE_WORD_INSTRUCTION_NAMES.includes(value);
 }
 
 function extractRegisterNumber(value: string): string {
@@ -166,12 +160,12 @@ class Register {
       memory.setValueAt(wordCount, 0);
       toLateInit.push([wordCount, index]);
       if (isMachineInstruction(line[1])) {
-        if (isOneWordInstruction(line[1])) {
+        if (line[2].length && !isRegister(line[2]) || line[3].length && !isRegister(line[3])) {
+          memory.setValueAt(wordCount, 0);
+          wordCount += 1;
           memory.setValueAt(wordCount, 0);
           wordCount += 1;
         } else {
-          memory.setValueAt(wordCount, 0);
-          wordCount += 1;
           memory.setValueAt(wordCount, 0);
           wordCount += 1;
         }
@@ -232,13 +226,16 @@ class Register {
     const instruction = (instructionLine & 0xFF00) >> 8;
     const gR = (instructionLine & 0xF0) >> 4;
     const gROrIR = instructionLine & 0xF;
+    let usedAddr = false;
     if (instruction === MACHINE_INSTRUCTION_NUMBER.LD) {
       // TODO: ここでレジスタ間の移動、指標レジスタ考慮を要実装
       register.setGRAt(gR, memory.getValueAt(addr));
+      usedAddr = true;
       console.log(register);
     }
     if (instruction === MACHINE_INSTRUCTION_NUMBER.ST) {
       memory.setValueAt(addr, register.getGRAt(gR));
+      usedAddr = true;
     }
     if (instruction === MACHINE_INSTRUCTION_NUMBER.SUBA) {
       // TODO: ここでレジスタとメモリ間の比較を要実装
@@ -284,10 +281,10 @@ class Register {
       console.log(memory.toString());
       break;
     }
-    if (isOneWordInstruction(toInstructionName(instruction))) {
-      currentAddress += 1;
-    } else {
+    if (usedAddr) {
       currentAddress += 2
+    } else {
+      currentAddress += 1;
     }
     register.setProgramCounter(currentAddress);
   }
