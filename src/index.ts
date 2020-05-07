@@ -156,71 +156,55 @@ class Register {
   const memory = new Memory();
   const register = new Register();
 
-  const toLateInit: [MemoryAddress, number][] = [];
-
   let wordCount = 0;
   const labelToAddrMap: { [key: string]: MemoryAddress } = {};
+  const labelAddrsToReplace: [MemoryAddress, string][] = [];
   // まずラベルの対応付け、DC, DSを処理する
   source.forEach(function (line, index) {
-    if (line[0].length) {
+    const [label, instruction] = line;
+    if (label.length) {
       labelToAddrMap[line[0]] = wordCount;
     }
-    if (line[1] === 'START' || line[1] === 'END') {
+    if (instruction === 'START' || instruction === 'END') {
       // TODO: STARTの引数をとるようにする
       return;
     }
-    if (line[1] === 'DC') {
+    if (instruction === 'DC') {
       memory.setValueAt(wordCount, Number(line[2]));
       // TODO: ここで内容文の語数を確保する
       wordCount += 1;
-    } else if (line[1] === 'DS') {
+    } else if (instruction === 'DS') {
       memory.setValueAt(wordCount, 0);
       // TODO: ここで内容文の語数を確保する
       wordCount += 1;
     } else {
-      if (!isMachineInstruction(line[1])) {
-        throw new Error(`未実装 ${line[1]}`);
+      if (!isMachineInstruction(instruction)) {
+        throw new Error(`未実装 ${instruction}`);
       }
       memory.setValueAt(wordCount, convertFirstWord(line));
+      wordCount += 1;
       const addrRaw = extractAddrRawValue(line);
       if (!addrRaw) {
-        wordCount += 1;
         return;
       }
-      memory.setValueAt(wordCount + 1, 0);
+      memory.setValueAt(wordCount, 0);
       if (isLabel(addrRaw)) {
-        toLateInit.push([wordCount, index]);
+        labelAddrsToReplace.push([wordCount, addrRaw]);
       } else {
         // TODO: 値を変換してセットする
       }
-      wordCount += 2;
+      wordCount += 1;
     }
   });
   console.log('アセンブラ命令処理完了');
   console.log(memory.toString());
 
-  function getAddressByLabel(labelName: string): number {
-    const address = labelToAddrMap[labelName];
-    if (!address) {
-      throw new Error(`未定義のラベル ${labelName}`);
+  labelAddrsToReplace.forEach(function([address, label]) {
+    const value =  labelToAddrMap[label];
+    if (!value) {
+      throw new Error(`未定義のラベル ${label}`);
     }
-    return address;
-  }
-
-  toLateInit.forEach(function (args) {
-    const line = source[args[1]];
-    let word2 = 0;
-    if (line[2].length && !isGeneralRegister(line[2])) {
-      // TODO: 本当はここでラベルかアドレスかの判定が必要
-      word2 = getAddressByLabel(line[2]);
-    }
-    if (line[3].length && !isGeneralRegister(line[3])) {
-      // TODO: 本当はここでラベルかアドレスかの判定が必要
-      word2 = getAddressByLabel(line[3]);
-    }
-    if (word2 !== 0) {
-      memory.setValueAt(args[0] + 1, word2);
-    }
+    memory.setValueAt(address, labelToAddrMap[label]);
   });
   console.log('コンパイル完了');
   console.log(memory.toString());
