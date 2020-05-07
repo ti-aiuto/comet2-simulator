@@ -18,50 +18,52 @@ const MACHINE_INSTRUCTION_NUMBER: { [key: string]: number } = Object.freeze({
   RET: 0x81
 });
 
-function extractRegisterNumber(value: string): number {
-  return Number(value.slice(-1));
-}
-
-function isGeneralRegister(value: string): boolean {
-  return (GENERAL_REGISTER_NAMES as Readonly<string[]>).includes(value);
-}
-
-function toInstructionNumber(name: string): number {
-  const value = MACHINE_INSTRUCTION_NUMBER[name];
-  if (value) {
-    return value;
+class LineAnalyzer {
+  static extractRegisterNumber(value: string): number {
+    return Number(value.slice(-1));
   }
-  throw new Error(`未定義の機械語 ${name}`);
-}
 
-function convertFirstWord(args: string[]): WordValue {
-  let word = toInstructionNumber(args[1]) * 0x100;
-  if (args[2].length) {
-    if (isGeneralRegister(args[2])) {
-      word |= extractRegisterNumber(args[2]) * 0x10;
-      if (args[3].length && isGeneralRegister(args[3])) {
-        word |= extractRegisterNumber(args[3]);
-      } else if (args[4].length && isGeneralRegister(args[4])) {
-        word |= extractRegisterNumber(args[4]);
+  static isGeneralRegister(value: string): boolean {
+    return (GENERAL_REGISTER_NAMES as Readonly<string[]>).includes(value);
+  }
+
+  static toInstructionNumber(name: string): number {
+    const value = MACHINE_INSTRUCTION_NUMBER[name];
+    if (value) {
+      return value;
+    }
+    throw new Error(`未定義の機械語 ${name}`);
+  }
+
+  static convertFirstWord(args: string[]): WordValue {
+    let word = this.toInstructionNumber(args[1]) * 0x100;
+    if (args[2].length) {
+      if (this.isGeneralRegister(args[2])) {
+        word |= this.extractRegisterNumber(args[2]) * 0x10;
+        if (args[3].length && this.isGeneralRegister(args[3])) {
+          word |= this.extractRegisterNumber(args[3]);
+        } else if (args[4].length && this.isGeneralRegister(args[4])) {
+          word |= this.extractRegisterNumber(args[4]);
+        }
       }
     }
+    return word;
   }
-  return word;
-}
 
-function extractAddrRawValue(args: string[]): string | null {
-  if (args[2].length > 0 && !isGeneralRegister(args[2])) {
-    return args[2];
+  static extractAddrRawValue(args: string[]): string | null {
+    if (args[2].length > 0 && !this.isGeneralRegister(args[2])) {
+      return args[2];
+    }
+    if (args[3].length > 0 && !this.isGeneralRegister(args[3])) {
+      return args[3];
+    }
+    return null;
   }
-  if (args[3].length > 0 && !isGeneralRegister(args[3])) {
-    return args[3];
-  }
-  return null;
-}
 
-function isLabel(value: string): boolean {
-  // TODO: 本当はここでラベルかアドレスかの判定が必要
-  return true;
+  static isLabel(value: string): boolean {
+    // TODO: 本当はここでラベルかアドレスかの判定が必要
+    return true;
+  }
 }
 
 class Compiler {
@@ -103,14 +105,14 @@ class Compiler {
         return;
       }
 
-      this.memory.setValueAt(wordCount, convertFirstWord(args));
+      this.memory.setValueAt(wordCount, LineAnalyzer.convertFirstWord(args));
       wordCount += 1;
-      const addrRaw = extractAddrRawValue(args);
+      const addrRaw = LineAnalyzer.extractAddrRawValue(args);
       if (!addrRaw) {
         return;
       }
       this.memory.setValueAt(wordCount, 0);
-      if (isLabel(addrRaw)) {
+      if (LineAnalyzer.isLabel(addrRaw)) {
         this.labelAddrsToReplace.push([wordCount, addrRaw]);
       } else {
         // TODO: 値を変換してセットする
