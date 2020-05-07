@@ -59,8 +59,14 @@ function convertFirstWord(args: string[]): WordValue {
   return word;
 }
 
-function hasSecondWord(args: string[]): boolean {
-  return args[2].length > 0 && !isGeneralRegister(args[2]) || args[3].length > 0 && !isGeneralRegister(args[3]);
+function extractAddrRawValue(args: string[]): string | null {
+  if (args[2].length > 0 && !isGeneralRegister(args[2])) {
+    return args[2];
+  }
+  if (args[3].length > 0 && !isGeneralRegister(args[3])) {
+    return args[3];
+  }
+  return null;
 }
 
 function toWordHex(num: number): string {
@@ -173,7 +179,8 @@ class Register {
       if (isMachineInstruction(line[1])) {
         memory.setValueAt(wordCount, convertFirstWord(line));
         wordCount += 1;
-        if (hasSecondWord(line)) {
+        const addrRaw = extractAddrRawValue(line);
+        if (addrRaw) {
           memory.setValueAt(wordCount, 0);
           wordCount += 1;
         }
