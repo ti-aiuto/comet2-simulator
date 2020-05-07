@@ -18,6 +18,30 @@ const MACHINE_INSTRUCTION_NUMBER: { [key: string]: number } = Object.freeze({
   RET: 0x81
 });
 
+function toWordHex(num: number): string {
+  return ('0000' + (num.toString(16))).slice(-4);
+}
+
+class Memory {
+  private values: { [key: number]: WordValue } = {};
+
+  getValueAt(address: MemoryAddress): WordValue {
+    return this.values[address];
+  }
+
+  setValueAt(address: MemoryAddress, value: WordValue) {
+    this.values[address] = value;
+  }
+
+  toString(): string {
+    let result = '';
+    for (let [key, value] of Object.entries(this.values)) {
+      result += `${toWordHex(Number(key))}: ${toWordHex(Number(value))}\n`.toUpperCase()
+    }
+    return result.trim();
+  }
+}
+
 class LineAnalyzer {
   constructor(private args: string[] = []) {
   }
@@ -89,6 +113,7 @@ class Compiler {
 
   constructor(
     private memory: Memory,
+    private beginAddr: number,
     private source: string[][],
     private labelToAddrMap: { [key: string]: MemoryAddress }) {
   }
@@ -99,43 +124,43 @@ class Compiler {
   }
 
   private compilePseudoInstructions() {
-    let wordCount = 0;
+    let currentAddress = this.beginAddr;
     // まずラベルの対応付け、DC, DSを処理する
     this.source.forEach((args) => {
       const [label, instruction] = args;
       if (label.length) {
-        this.labelToAddrMap[args[0]] = wordCount;
+        this.labelToAddrMap[label] = currentAddress;
       }
       if (instruction === 'START' || instruction === 'END') {
         // TODO: STARTの引数をとるようにする
         return;
       }
       if (instruction === 'DC') {
-        this.memory.setValueAt(wordCount, Number(args[2]));
+        this.memory.setValueAt(currentAddress, Number(args[2]));
         // TODO: ここで内容分の語数を確保する
-        wordCount += 1;
+        currentAddress += 1;
         return;
       }
       if (instruction === 'DS') {
-        this.memory.setValueAt(wordCount, 0);
+        this.memory.setValueAt(currentAddress, 0);
         // TODO: ここで内容分の語数を確保する
-        wordCount += 1;
+        currentAddress += 1;
         return;
       }
       this.lineAnalyzer.update(args);
-      this.memory.setValueAt(wordCount, this.lineAnalyzer.convertFirstWord());
-      wordCount += 1;
+      this.memory.setValueAt(currentAddress, this.lineAnalyzer.convertFirstWord());
+      currentAddress += 1;
       if (!this.lineAnalyzer.hasAddrValue()) {
         return;
       }
       let addrLabel = this.lineAnalyzer.extractAddrLabel();
       if (addrLabel) {
-        this.memory.setValueAt(wordCount, 0);
-        this.labelAddrsToReplace.push([wordCount, addrLabel]);
+        this.memory.setValueAt(currentAddress, 0);
+        this.labelAddrsToReplace.push([currentAddress, addrLabel]);
       } else {
-        this.memory.setValueAt(wordCount, this.lineAnalyzer.parseAddrValue());
+        this.memory.setValueAt(currentAddress, this.lineAnalyzer.parseAddrValue());
       }
-      wordCount += 1;
+      currentAddress += 1;
     });
     console.log('アセンブラ命令処理完了');
     console.log(this.memory.toString());
@@ -151,30 +176,6 @@ class Compiler {
     });
     console.log('コンパイル完了');
     console.log(this.memory.toString());
-  }
-}
-
-function toWordHex(num: number): string {
-  return ('0000' + (num.toString(16))).slice(-4);
-}
-
-class Memory {
-  private values: { [key: number]: WordValue } = {};
-
-  getValueAt(address: MemoryAddress): WordValue {
-    return this.values[address];
-  }
-
-  setValueAt(address: MemoryAddress, value: WordValue) {
-    this.values[address] = value;
-  }
-
-  toString(): string {
-    let result = '';
-    for (let [key, value] of Object.entries(this.values)) {
-      result += `${toWordHex(Number(key))}: ${toWordHex(Number(value))}\n`.toUpperCase()
-    }
-    return result.trim();
   }
 }
 
@@ -237,7 +238,7 @@ class Register {
   const memory = new Memory();
   const register = new Register();
 
-  new Compiler(memory, source, {}).compile();
+  new Compiler(memory, 0, source, {}).compile();
 
   // TODO: START命令からの値を入れるようにする
   register.setProgramCounter(0);
