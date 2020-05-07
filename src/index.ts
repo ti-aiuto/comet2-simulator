@@ -10,13 +10,6 @@ const GENERAL_REGISTER_NAMES = ['GR0', 'GR1', 'GR2', 'GR3', 'GR4', 'GR5', 'GR6',
 type FlagRegisterName = typeof FLAG_REGISTER_NAMES[number];
 type GeneralRegisterName = typeof GENERAL_REGISTER_NAMES[number];
 
-enum PSEUDO_INSTRUCTION_NAME {
-  DC = 'DC',
-  DS = 'DS',
-  START = 'START',
-  END = 'END'
-}
-
 const MACHINE_INSTRUCTION_NUMBER: { [key: string]: number } = Object.freeze({
   LD: 0x10,
   ST: 0x11,
@@ -151,15 +144,15 @@ class Register {
     if (line[0].length) {
       labelToAddrMap[line[0]] = wordCount;
     }
-    if (line[1] === PSEUDO_INSTRUCTION_NAME.START || line[1] === PSEUDO_INSTRUCTION_NAME.END) {
+    if (line[1] === 'START' || line[1] === 'END') {
       // TODO: STARTの引数をとるようにする
       return;
     }
-    if (line[1] === PSEUDO_INSTRUCTION_NAME.DC) {
+    if (line[1] === 'DC') {
       memory.setValueAt(wordCount, Number(line[2]));
       // TODO: ここで内容文の語数を確保する
       wordCount += 1;
-    } else if (line[1] === PSEUDO_INSTRUCTION_NAME.DS) {
+    } else if (line[1] === 'DS') {
       memory.setValueAt(wordCount, 0);
       // TODO: ここで内容文の語数を確保する
       wordCount += 1;
