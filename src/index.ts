@@ -36,7 +36,6 @@ function isGeneralRegister(value: string): boolean {
   return (GENERAL_REGISTER_NAMES as Readonly<string[]>).includes(value);
 }
 
-
 function toInstructionNumber(name: string): number {
   if (isMachineInstruction(name)) {
     return MACHINE_INSTRUCTION_NUMBER[name as MachineInsttructionName];
@@ -67,6 +66,11 @@ function extractAddrRawValue(args: string[]): string | null {
     return args[3];
   }
   return null;
+}
+
+function isLabel(value: string): boolean {
+  // TODO: 本当はここでラベルかアドレスかの判定が必要
+  return true;
 }
 
 function toWordHex(num: number): string {
@@ -179,13 +183,17 @@ class Register {
       }
       memory.setValueAt(wordCount, convertFirstWord(line));
       const addrRaw = extractAddrRawValue(line);
-      if (addrRaw) {
-        toLateInit.push([wordCount, index]);
-        memory.setValueAt(wordCount + 1, 0);
-        wordCount += 2;
-      } else {
+      if (!addrRaw) {
         wordCount += 1;
+        return;
       }
+      memory.setValueAt(wordCount + 1, 0);
+      if (isLabel(addrRaw)) {
+        toLateInit.push([wordCount, index]);
+      } else {
+        // TODO: 値を変換してセットする
+      }
+      wordCount += 2;
     }
   });
   console.log('アセンブラ命令処理完了');
