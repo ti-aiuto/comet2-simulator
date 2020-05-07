@@ -50,7 +50,19 @@ class LineAnalyzer {
     this.args = args;
   }
 
-  convertFirstWord(): WordValue {
+  parseLabel(): string | null {
+    const label = this.args[0]
+    if (label.length) {
+      return label;
+    }
+    return null;
+  }
+
+  parseInstruction(): string  {
+    return this.args[1];
+  }
+
+  buildFirstWord(): WordValue {
     let word = this.toInstructionNumber(this.args[1]) * 0x100;
     if (this.args[2].length) {
       if (this.isGeneralRegister(this.args[2])) {
@@ -70,7 +82,7 @@ class LineAnalyzer {
     return !!this.extractAddrRawValue();
   }
 
-  extractAddrLabel(): string | null {
+  parseAddrLabel(): string | null {
     // TODO: 本当はここでラベルかアドレスかの判定が必要
     return this.extractAddrRawValue();
   }
@@ -119,16 +131,18 @@ class Compiler {
   }
 
   compile() {
-    this.compilePseudoInstructions();
-    this.compileMachineInstructions();
+    this.parseAndAllocate();
+    this.solveLabels();
   }
 
-  private compilePseudoInstructions() {
+  private parseAndAllocate() {
     let currentAddress = this.beginAddr;
     // まずラベルの対応付け、DC, DSを処理する
     this.source.forEach((args) => {
-      const [label, instruction] = args;
-      if (label.length) {
+      this.lineAnalyzer.update(args);
+      const label = this.lineAnalyzer.parseLabel();
+      const instruction = this.lineAnalyzer.parseInstruction();
+      if (label) {
         this.labelToAddrMap[label] = currentAddress;
       }
       if (instruction === 'START' || instruction === 'END') {
@@ -147,13 +161,12 @@ class Compiler {
         currentAddress += 1;
         return;
       }
-      this.lineAnalyzer.update(args);
-      this.memory.setValueAt(currentAddress, this.lineAnalyzer.convertFirstWord());
+      this.memory.setValueAt(currentAddress, this.lineAnalyzer.buildFirstWord());
       currentAddress += 1;
       if (!this.lineAnalyzer.hasAddrValue()) {
         return;
       }
-      let addrLabel = this.lineAnalyzer.extractAddrLabel();
+      let addrLabel = this.lineAnalyzer.parseAddrLabel();
       if (addrLabel) {
         this.memory.setValueAt(currentAddress, 0);
         this.labelAddrsToReplace.push([currentAddress, addrLabel]);
@@ -166,7 +179,7 @@ class Compiler {
     console.log(this.memory.toString());
   }
 
-  private compileMachineInstructions() {
+  private solveLabels() {
     this.labelAddrsToReplace.forEach(([address, label]) => {
       const value = this.labelToAddrMap[label];
       if (!value) {
