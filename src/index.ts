@@ -4,20 +4,11 @@ type MemoryAddress = number;
 type WordValue = number;
 type FlagValue = 0 | 1;
 
-enum REGISTER_NAME {
-  PR = 'PR',
-  GR0 = 'GR0',
-  GR1 = 'GR1',
-  GR2 = 'GR2',
-  GR3 = 'GR3',
-  GR4 = 'GR4',
-  GR5 = 'GR5',
-  GR6 = 'GR6',
-  GR7 = 'GR7',
-  OF = 'OF',
-  SF = 'SF',
-  ZF = 'ZF'
-}
+const FLAG_REGISTER_NAMES = ['OF', 'SF', 'ZF'] as const;
+const GENERAL_REGISTER_NAMES = ['GR0', 'GR1', 'GR2', 'GR3', 'GR4', 'GR5', 'GR6', 'GR7'] as const;
+
+type FlagRegisterName = typeof FLAG_REGISTER_NAMES[number];
+type GeneralRegisterName = typeof GENERAL_REGISTER_NAMES[number];
 
 enum PSEUDO_INSTRUCTION_NAME {
   DC = 'DC',
@@ -48,7 +39,7 @@ function toInstructionNumber(name: string): number {
 }
 
 function toInstructionName(num: number): string {
-  for(let [key, value] of Object.entries(MACHINE_INSTRUCTION_NUMBER)) {
+  for (let [key, value] of Object.entries(MACHINE_INSTRUCTION_NUMBER)) {
     if (num === value) {
       return key;
     }
@@ -65,7 +56,7 @@ function extractRegisterNumber(value: string): string {
 }
 
 function isRegister(value: string): boolean {
-  return Object.keys(REGISTER_NAME).includes(value);
+  return (GENERAL_REGISTER_NAMES as Readonly<string[]>).includes(value);
 }
 
 function toWordHex(num: number): string {
@@ -85,7 +76,7 @@ class Memory {
 
   toString(): string {
     let result = '';
-    for(let [key, value] of Object.entries(this.values)) {
+    for (let [key, value] of Object.entries(this.values)) {
       result += `${toWordHex(Number(key))}: ${toWordHex(Number(value))}\n`.toUpperCase()
     }
     return result.trim();
@@ -94,25 +85,28 @@ class Memory {
 
 class Register {
   private programCounter: MemoryAddress = 0;
-  private gRValues: { [key: string]: WordValue } = {};
-  private flagValues: { [key: string]: FlagValue } = {};
+  private gRValues: { [key in GeneralRegisterName]: WordValue } = {
+    'GR0': 0, 'GR1': 0, 'GR2': 0, 'GR3': 0, 'GR4': 0,
+    'GR5': 0, 'GR6': 0, 'GR7': 0
+  };
+  private flagValues: { [key in FlagRegisterName]: FlagValue } = { OF: 0, SF: 0, ZF: 0 };
 
   getSignFlag(): FlagValue {
-    return this.flagValues[REGISTER_NAME.SF];
+    return this.flagValues['SF'];
   }
 
   getZeroFlag(): FlagValue {
-    return this.flagValues[REGISTER_NAME.ZF];
+    return this.flagValues['ZF'];
   }
 
   getOverflowFlag(): FlagValue {
-    return this.flagValues[REGISTER_NAME.OF];
+    return this.flagValues['OF'];
   }
 
   setFlags(o: FlagValue, s: FlagValue, z: FlagValue) {
-    this.flagValues[REGISTER_NAME.OF] = o;
-    this.flagValues[REGISTER_NAME.SF] = s;
-    this.flagValues[REGISTER_NAME.ZF] = z;
+    this.flagValues['OF'] = o;
+    this.flagValues['SF'] = s;
+    this.flagValues['ZF'] = z;
   }
 
   getGRAt(index: number): WordValue {
@@ -133,8 +127,12 @@ class Register {
 
   // TODO: SPを定義
 
-  private gRKeyNameOf(index: number): string {
-    return `GR${index}`;
+  private gRKeyNameOf(index: number): GeneralRegisterName {
+    const name = `GR${index}`;
+    if ((GENERAL_REGISTER_NAMES as Readonly<string[]>).includes(name)) {
+      return name as GeneralRegisterName;
+    }
+    throw new Error(`未定義のGR ${index}`);
   }
 }
 
@@ -185,7 +183,7 @@ class Register {
   });
   console.log('アセンブラ命令処理完了');
   console.log(memory.toString());
-  
+
   function getAddressByLabel(labelName: string): number {
     const address = labelToAddrMap[labelName];
     if (!address) {
