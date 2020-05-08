@@ -419,6 +419,16 @@ class JMI2 extends MachineInstruction {
   }
 }
 
+const MACHINE_INSTRUCTION_IMPLIMENTATION: { [key: number]: MachineInstruction } = Object.freeze({
+  [MACHINE_INSTRUCTION_NUMBER.LD[2]]: new LD2(),
+  [MACHINE_INSTRUCTION_NUMBER.ST[2]]: new ST2(),
+  [MACHINE_INSTRUCTION_NUMBER.SUBA[1]]: new SUBA1(),
+  [MACHINE_INSTRUCTION_NUMBER.CPA[1]]: new CPA1(),
+  [MACHINE_INSTRUCTION_NUMBER.JUMP[2]]: new JUMP2(),
+  [MACHINE_INSTRUCTION_NUMBER.JZE[2]]: new JZE2(),
+  [MACHINE_INSTRUCTION_NUMBER.JMI[2]]: new JMI2(),
+});
+
 (async function () {
   const source: (string[])[] = sampleSource;
 
@@ -430,45 +440,25 @@ class JMI2 extends MachineInstruction {
   // TODO: START命令からの値を入れるようにする
   register.setProgramCounter(0);
   while (true) {
-    let currentAddress = register.getProgramCounter();
+    const currentAddress = register.getProgramCounter();
     const instructionLine = memory.getValueAt(currentAddress);
-    console.log(instructionLine);
-    const instruction = (instructionLine & 0xFF00) >> 8;
-    let operation: MachineInstruction | null = null;
-    if (instruction === MACHINE_INSTRUCTION_NUMBER.LD[2]) {
-      operation = new LD2();
-    }
-    if (instruction === MACHINE_INSTRUCTION_NUMBER.ST[2]) {
-      operation = new ST2();
-    }
-    if (instruction === MACHINE_INSTRUCTION_NUMBER.SUBA[1]) {
-      operation = new SUBA1();
-    }
-    if (instruction === MACHINE_INSTRUCTION_NUMBER.CPA[1]) {
-      operation = new CPA1();
-    }
-    if (instruction === MACHINE_INSTRUCTION_NUMBER.JUMP[2]) {
-      operation = new JUMP2();
-    }
-    if (instruction === MACHINE_INSTRUCTION_NUMBER.JZE[2]) {
-      operation = new JZE2();
-    }
-    if (instruction === MACHINE_INSTRUCTION_NUMBER.JMI[2]) {
-      operation = new JMI2();
-    }
-    if (instruction === MACHINE_INSTRUCTION_NUMBER.RET[1]) {
+    const instructionNumber = (instructionLine & 0xFF00) >> 8;
+    const instruction = MACHINE_INSTRUCTION_IMPLIMENTATION[instructionNumber];
+    if (instructionNumber === MACHINE_INSTRUCTION_NUMBER.RET[1]) {
       // TODO: SPの実装のときにここも直す
       console.log('処理終了');
       console.log(register);
       console.log(memory.toString());
       break;
     }
-    if (operation) {
-      operation.setup(memory, register);
-      const step = operation.evaluate();
-      if (step) {
-        register.setProgramCounter(currentAddress + step);
-      }
+    if (!instruction) {
+      throw new Error(`実装が未定義 ${instructionNumber}`);
     }
+    instruction.setup(memory, register);
+    const step = instruction.evaluate();
+    if (step === 0) {
+      continue;
+    }
+    register.setProgramCounter(currentAddress + step);
   }
 })();
