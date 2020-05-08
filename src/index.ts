@@ -272,8 +272,6 @@ abstract class MachineInstruction {
   protected register!: Register;
 
   abstract evaluate(): number;
-  abstract instructionNumber(): number;
-  abstract name(): string;
 
   setup(memory: Memory, register: Register) {
     this.memory = memory;
@@ -303,14 +301,6 @@ class LD2 extends MachineInstruction {
     this.register.setGRAt(this.gR1Value(), this.memory.getValueAt(this.addrValue()));
     return 2;
   }
-
-  instructionNumber(): number {
-    return 0x14;
-  }
-
-  name(): string {
-    return 'LD';
-  }
 }
 
 class ST2 extends MachineInstruction {
@@ -318,14 +308,6 @@ class ST2 extends MachineInstruction {
     // TODO: 指標レジスタ考慮を要実装
     this.memory.setValueAt(this.addrValue(), this.register.getGRAt(this.gR1Value()));
     return 2;
-  }
-
-  instructionNumber(): number {
-    return 0x11;
-  }
-
-  name(): string {
-    return 'ST';
   }
 }
 
@@ -335,14 +317,6 @@ class SUBA1 extends MachineInstruction {
     this.register.setGRAt(this.gR1Value(),
       this.register.getGRAt(this.gR1Value()) - this.register.getGRAt(this.gR2OrIRValue()));
     return 1;
-  }
-
-  instructionNumber(): number {
-    return 0x25;
-  }
-
-  name(): string {
-    return 'SUBA';
   }
 }
 
@@ -358,28 +332,12 @@ class CPA1 extends MachineInstruction {
     }
     return 1;
   }
-
-  instructionNumber(): number {
-    return 0x40;
-  }
-
-  name(): string {
-    return 'CPA';
-  }
 }
 
 class JUMP2 extends MachineInstruction {
   evaluate(): number {
     this.register.setProgramCounter(this.addrValue());
     return 0;
-  }
-
-  instructionNumber(): number {
-    return 0x64;
-  }
-
-  name(): string {
-    return 'JUMP';
   }
 }
 
@@ -391,14 +349,6 @@ class JZE2 extends MachineInstruction {
     }
     return 2;
   }
-
-  instructionNumber(): number {
-    return 0x63;
-  }
-
-  name(): string {
-    return 'JZE';
-  }
 }
 
 class JMI2 extends MachineInstruction {
@@ -408,14 +358,6 @@ class JMI2 extends MachineInstruction {
       return 0;
     }
     return 2;
-  }
-
-  instructionNumber(): number {
-    return 0x61;
-  }
-
-  name(): string {
-    return 'JMI';
   }
 }
 
@@ -441,9 +383,8 @@ const MACHINE_INSTRUCTION_IMPLIMENTATION: { [key: number]: MachineInstruction } 
   register.setProgramCounter(0);
   while (true) {
     const currentAddress = register.getProgramCounter();
-    const instructionLine = memory.getValueAt(currentAddress);
-    const instructionNumber = (instructionLine & 0xFF00) >> 8;
-    const instruction = MACHINE_INSTRUCTION_IMPLIMENTATION[instructionNumber];
+    const instructionNumber = (memory.getValueAt(currentAddress) & 0xFF00) >> 8;
+    const instructionImpl = MACHINE_INSTRUCTION_IMPLIMENTATION[instructionNumber];
     if (instructionNumber === MACHINE_INSTRUCTION_NUMBER.RET[1]) {
       // TODO: SPの実装のときにここも直す
       console.log('処理終了');
@@ -451,11 +392,11 @@ const MACHINE_INSTRUCTION_IMPLIMENTATION: { [key: number]: MachineInstruction } 
       console.log(memory.toString());
       break;
     }
-    if (!instruction) {
+    if (!instructionImpl) {
       throw new Error(`実装が未定義 ${instructionNumber}`);
     }
-    instruction.setup(memory, register);
-    const step = instruction.evaluate();
+    instructionImpl.setup(memory, register);
+    const step = instructionImpl.evaluate();
     if (step === 0) {
       continue;
     }
