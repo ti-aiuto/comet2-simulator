@@ -161,8 +161,6 @@ class Compiler {
       }
       currentAddress += this.compilePseudoInstruction(currentAddress, args);
     });
-    console.log('アセンブラ命令処理完了');
-    console.log(this.memory.toString());
   }
 
   private solveLabels() {
@@ -173,8 +171,6 @@ class Compiler {
       }
       this.memory.setValueAt(address, this.labelToAddrMap[label]);
     });
-    console.log('コンパイル完了');
-    console.log(this.memory.toString());
   }
 
   private compilePseudoInstruction(currentAddress: number, args: string[]): number {
@@ -415,7 +411,13 @@ class Machine {
   const memory = new Memory();
   const register = new Register();
 
-  new Compiler(memory, 0, source, {}).compile();
+  const labelToAddrMap = {};
+  new Compiler(memory, 0, source, labelToAddrMap).compile();
+  console.log('コンパイル完了');
+  console.log(memory.toString());
+  console.log('ラベル対応付け');
+  console.log(labelToAddrMap);
+
   new Machine(memory, register, 0).execute();
 
   console.log('処理終了');
