@@ -268,8 +268,8 @@ class Register {
 }
 
 abstract class MachineInstruction {
-  private memory!: Memory;
-  private register!: Register;
+  protected memory!: Memory;
+  protected register!: Register;
 
   abstract evaluate(): void;
   abstract wordLength(): number;
@@ -285,18 +285,77 @@ abstract class MachineInstruction {
     return this.memory.getValueAt(this.register.getProgramCounter());
   }
 
-  private getGR1Value(): number {
+  protected gR1Value(): number {
     return (this.instructionWord() & 0xF0) >> 4;
   }
 
-  private getGR2OrIRValue(memory: Memory, regisger: Register): number {
+  protected gR2OrIRValue(): number {
     return this.instructionWord() & 0xF;
   }
 
-  private getAddrValue(): number {
+  protected addrValue(): number {
     return this.memory.getValueAt(this.register.getProgramCounter() + 1);
   }
 }
+
+class LD2 extends MachineInstruction {
+  evaluate(): void {
+    // TODO: 指標レジスタ考慮を要実装
+    this.register.setGRAt(this.gR1Value(), this.memory.getValueAt(this.addrValue()));
+  }
+
+  wordLength(): number {
+    return 2;
+  }
+
+  instructionNumber(): number {
+    return 0x14;
+  }
+
+  name(): string {
+    return 'LD';
+  }
+}
+
+class ST2 extends MachineInstruction {
+  evaluate(): void {
+    // TODO: 指標レジスタ考慮を要実装
+    this.memory.setValueAt(this.addrValue(), this.register.getGRAt(this.gR1Value()));
+  }
+
+  wordLength(): number {
+    return 2;
+  }
+
+  instructionNumber(): number {
+    return 0x11;
+  }
+
+  name(): string {
+    return 'ST';
+  }
+}
+
+class SUBA1 extends MachineInstruction {
+  evaluate(): void {
+    this.register.setGRAt(this.gR1Value(),
+      this.register.getGRAt(this.gR1Value()) - this.register.getGRAt(this.gR2OrIRValue()));
+  }
+
+  wordLength(): number {
+    return 1;
+  }
+
+  instructionNumber(): number {
+    return 0x25;
+  }
+
+  name(): string {
+    return 'SUBA';
+  }
+}
+
+
 
 (async function () {
   const source: (string[])[] = sampleSource;
