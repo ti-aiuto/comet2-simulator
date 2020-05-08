@@ -338,6 +338,7 @@ class ST2 extends MachineInstruction {
 
 class SUBA1 extends MachineInstruction {
   evaluate(): void {
+    // TODO: オーバーフロー要考慮
     this.register.setGRAt(this.gR1Value(),
       this.register.getGRAt(this.gR1Value()) - this.register.getGRAt(this.gR2OrIRValue()));
   }
@@ -459,30 +460,28 @@ class JMI2 extends MachineInstruction {
     let usedAddr = false;
     if (instruction === MACHINE_INSTRUCTION_NUMBER.LD[2]) {
       // TODO: ここでレジスタ間の移動、指標レジスタ考慮を要実装
-      register.setGRAt(gR, memory.getValueAt(addr));
+      const operation = new LD2();
+      operation.setup(memory, register);
+      operation.evaluate();
       usedAddr = true;
       console.log(register);
     }
     if (instruction === MACHINE_INSTRUCTION_NUMBER.ST[2]) {
-      memory.setValueAt(addr, register.getGRAt(gR));
+      const operation = new ST2();
+      operation.setup(memory, register);
+      operation.evaluate();
       usedAddr = true;
     }
     if (instruction === MACHINE_INSTRUCTION_NUMBER.SUBA[1]) {
-      // TODO: ここでレジスタとメモリ間の比較を要実装
-      register.setGRAt(gR, register.getGRAt(gR) - register.getGRAt(gROrIR));
+      const operation = new SUBA1();
+      operation.setup(memory, register);
+      operation.evaluate();
       console.log(register);
     }
     if (instruction === MACHINE_INSTRUCTION_NUMBER.CPA[1]) {
-      // TODO: ここでレジスタとメモリ間の比較を要実装
-      // TODO: オーバーフロー要考慮
-      const result = register.getGRAt(gR) - register.getGRAt(gROrIR);
-      if (result > 0) {
-        register.setFlags(0, 0, 0);
-      } else if (result === 0) {
-        register.setFlags(0, 0, 1);
-      } else {
-        register.setFlags(0, 1, 0);
-      }
+      const operation = new CPA1();
+      operation.setup(memory, register);
+      operation.evaluate();
       console.log(register);
     }
     if (instruction === MACHINE_INSTRUCTION_NUMBER.JUMP[2]) {
