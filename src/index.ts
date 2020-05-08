@@ -6,15 +6,15 @@ type FlagValue = 0 | 1;
 
 const GENERAL_REGISTER_NAMES = Object.freeze(['GR0', 'GR1', 'GR2', 'GR3', 'GR4', 'GR5', 'GR6', 'GR7']);
 
-const MACHINE_INSTRUCTION_NUMBER: { [key: string]: number } = Object.freeze({
-  LD: 0x10,
-  ST: 0x11,
-  CPA: 0x40,
-  JZE: 0x63,
-  JMI: 0x61,
-  SUBA: 0x25,
-  JUMP: 0x64,
-  RET: 0x81
+const MACHINE_INSTRUCTION_NUMBER: { [key: string]: { [key: number]: number } } = Object.freeze({
+  LD: { 2: 0x10 },
+  ST: { 2: 0x11 },
+  CPA: { 1: 0x40 },
+  JZE: { 2: 0x63 },
+  JMI: { 2: 0x61 },
+  SUBA: { 1: 0x25 },
+  JUMP: { 2: 0x64 },
+  RET: { 1: 0x81 }
 });
 
 function toWordHex(num: number): string {
@@ -58,25 +58,33 @@ class LineAnalyzer {
   }
 
   isMachineInstruction(): boolean {
-    return this.toInstructionNumber(this.args[1]) !== null;
+    return Object.keys(MACHINE_INSTRUCTION_NUMBER).includes(this.args[1]);
   }
 
   buildFirstWord(): WordValue {
-    const instructionNumber = this.toInstructionNumber(this.args[1]);
-    if (!instructionNumber) {
-      throw new Error(`未定義の機械語 ${name}`);
-    }
-    let word = instructionNumber * 0x100;
+    let wordLength = 1;
+    let word = 0;
     if (this.args[2].length) {
       if (this.isGeneralRegister(this.args[2])) {
         word |= this.extractRegisterNumber(this.args[2]) * 0x10;
-        if (this.args[3].length && this.isGeneralRegister(this.args[3])) {
-          word |= this.extractRegisterNumber(this.args[3]);
+        if (this.args[3].length) {
+          if (this.isGeneralRegister(this.args[3])) {
+            word |= this.extractRegisterNumber(this.args[3]);
+          } else {
+            wordLength = 2;
+          }
         } else if (this.args[4].length && this.isGeneralRegister(this.args[4])) {
           word |= this.extractRegisterNumber(this.args[4]);
         }
+      } else {
+        wordLength = 2;
       }
     }
+    const instructionNumber = this.toInstructionNumber(this.args[1], wordLength);
+    if (!instructionNumber) {
+      throw new Error(`未定義の機械語 ${name}`);
+    }
+    word |= instructionNumber * 0x100;
     return word;
   }
 
@@ -113,10 +121,10 @@ class LineAnalyzer {
     return Number(value.slice(-1));
   }
 
-  private toInstructionNumber(name: string): number | null {
+  private toInstructionNumber(name: string, length: number): number | null {
     const value = MACHINE_INSTRUCTION_NUMBER[name];
-    if (value) {
-      return value;
+    if (value && value[length]) {
+      return value[length];
     }
     return null;
   }
@@ -278,24 +286,24 @@ class Register {
     const gR = (instructionLine & 0xF0) >> 4;
     const gROrIR = instructionLine & 0xF;
     let usedAddr = false;
-    if (instruction === MACHINE_INSTRUCTION_NUMBER.LD) {
+    if (instruction === MACHINE_INSTRUCTION_NUMBER.LD[2]) {
       // TODO: ここでレジスタ間の移動、指標レジスタ考慮を要実装
       register.setGRAt(gR, memory.getValueAt(addr));
       usedAddr = true;
       console.log(register);
     }
-    if (instruction === MACHINE_INSTRUCTION_NUMBER.ST) {
+    if (instruction === MACHINE_INSTRUCTION_NUMBER.ST[2]) {
       memory.setValueAt(addr, register.getGRAt(gR));
       usedAddr = true;
     }
-    if (instruction === MACHINE_INSTRUCTION_NUMBER.SUBA) {
+    if (instruction === MACHINE_INSTRUCTION_NUMBER.SUBA[1]) {
       // TODO: ここでレジスタとメモリ間の比較を要実装
       const r1Value = register.getGRAt(gR);
       const r2Value = register.getGRAt(gROrIR);
       register.setGRAt(gR, r1Value - r2Value);
       console.log(register);
     }
-    if (instruction === MACHINE_INSTRUCTION_NUMBER.CPA) {
+    if (instruction === MACHINE_INSTRUCTION_NUMBER.CPA[1]) {
       // TODO: ここでレジスタとメモリ間の比較を要実装
       // TODO: オーバーフロー要考慮
       const r1Value = register.getGRAt(gR);
@@ -310,23 +318,23 @@ class Register {
       }
       console.log(register);
     }
-    if (instruction === MACHINE_INSTRUCTION_NUMBER.JUMP) {
+    if (instruction === MACHINE_INSTRUCTION_NUMBER.JUMP[2]) {
       register.setProgramCounter(addr);
       continue;
     }
-    if (instruction === MACHINE_INSTRUCTION_NUMBER.JZE) {
+    if (instruction === MACHINE_INSTRUCTION_NUMBER.JZE[2]) {
       if (register.getZeroFlag() === 1) {
         register.setProgramCounter(addr);
         continue;
       }
     }
-    if (instruction === MACHINE_INSTRUCTION_NUMBER.JMI) {
+    if (instruction === MACHINE_INSTRUCTION_NUMBER.JMI[2]) {
       if (register.getSignFlag() === 1) {
         register.setProgramCounter(addr);
         continue;
       }
     }
-    if (instruction === MACHINE_INSTRUCTION_NUMBER.RET) {
+    if (instruction === MACHINE_INSTRUCTION_NUMBER.RET[1]) {
       console.log('処理終了');
       console.log(register);
       console.log(memory.toString());
