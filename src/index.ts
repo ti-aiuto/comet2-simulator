@@ -457,6 +457,7 @@ class JMI2 extends MachineInstruction {
       operation = new JMI2();
     }
     if (instruction === MACHINE_INSTRUCTION_NUMBER.RET[1]) {
+      // TODO: SPの実装のときにここも直す
       console.log('処理終了');
       console.log(register);
       console.log(memory.toString());
