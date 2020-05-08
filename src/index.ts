@@ -4,8 +4,7 @@ type MemoryAddress = number;
 type WordValue = number;
 type FlagValue = 0 | 1;
 
-const GENERAL_REGISTER_NAMES = ['GR0', 'GR1', 'GR2', 'GR3', 'GR4', 'GR5', 'GR6', 'GR7'] as const;
-type GeneralRegisterName = typeof GENERAL_REGISTER_NAMES[number];
+const GENERAL_REGISTER_NAMES = Object.freeze(['GR0', 'GR1', 'GR2', 'GR3', 'GR4', 'GR5', 'GR6', 'GR7']);
 
 const MACHINE_INSTRUCTION_NUMBER: { [key: string]: number } = Object.freeze({
   LD: 0x10,
@@ -103,7 +102,7 @@ class LineAnalyzer {
   }
 
   private isGeneralRegister(value: string): boolean {
-    return (GENERAL_REGISTER_NAMES as Readonly<string[]>).includes(value);
+    return GENERAL_REGISTER_NAMES.includes(value);
   }
 
   private extractRegisterNumber(value: string): number {
@@ -204,11 +203,12 @@ class Compiler {
 
 class Register {
   private programCounter: MemoryAddress = 0;
-  private gRValues: { [key in GeneralRegisterName]: WordValue } = {
-    'GR0': 0, 'GR1': 0, 'GR2': 0, 'GR3': 0, 'GR4': 0,
-    'GR5': 0, 'GR6': 0, 'GR7': 0
-  };
+  private gRValues: { [key: string]: WordValue } = {};
   private flagValues: { [key in 'OF' | 'SF' | 'ZF']: FlagValue } = { OF: 0, SF: 0, ZF: 0 };
+
+  constructor() {
+    GENERAL_REGISTER_NAMES.forEach(name => this.gRValues[name] = 0);
+  }
 
   getSignFlag(): FlagValue {
     return this.flagValues['SF'];
@@ -246,10 +246,10 @@ class Register {
 
   // TODO: SPを定義
 
-  private gRKeyNameOf(index: number): GeneralRegisterName {
+  private gRKeyNameOf(index: number): string {
     const name = `GR${index}`;
-    if ((GENERAL_REGISTER_NAMES as Readonly<string[]>).includes(name)) {
-      return name as GeneralRegisterName;
+    if (GENERAL_REGISTER_NAMES.includes(name)) {
+      return name;
     }
     throw new Error(`未定義のGR ${index}`);
   }
