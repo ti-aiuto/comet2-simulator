@@ -271,8 +271,7 @@ abstract class MachineInstruction {
   protected memory!: Memory;
   protected register!: Register;
 
-  abstract evaluate(): void;
-  abstract wordLength(): number;
+  abstract evaluate(): number;
   abstract instructionNumber(): number;
   abstract name(): string;
 
@@ -299,12 +298,9 @@ abstract class MachineInstruction {
 }
 
 class LD2 extends MachineInstruction {
-  evaluate(): void {
+  evaluate(): number {
     // TODO: 指標レジスタ考慮を要実装
     this.register.setGRAt(this.gR1Value(), this.memory.getValueAt(this.addrValue()));
-  }
-
-  wordLength(): number {
     return 2;
   }
 
@@ -318,12 +314,9 @@ class LD2 extends MachineInstruction {
 }
 
 class ST2 extends MachineInstruction {
-  evaluate(): void {
+  evaluate(): number {
     // TODO: 指標レジスタ考慮を要実装
     this.memory.setValueAt(this.addrValue(), this.register.getGRAt(this.gR1Value()));
-  }
-
-  wordLength(): number {
     return 2;
   }
 
@@ -337,13 +330,10 @@ class ST2 extends MachineInstruction {
 }
 
 class SUBA1 extends MachineInstruction {
-  evaluate(): void {
+  evaluate(): number {
     // TODO: オーバーフロー要考慮
     this.register.setGRAt(this.gR1Value(),
       this.register.getGRAt(this.gR1Value()) - this.register.getGRAt(this.gR2OrIRValue()));
-  }
-
-  wordLength(): number {
     return 1;
   }
 
@@ -357,7 +347,7 @@ class SUBA1 extends MachineInstruction {
 }
 
 class CPA1 extends MachineInstruction {
-  evaluate(): void {
+  evaluate(): number {
     const result = this.register.getGRAt(this.gR1Value()) - this.register.getGRAt(this.gR2OrIRValue());
     if (result > 0) {
       this.register.setFlags(0, 0, 0);
@@ -366,9 +356,6 @@ class CPA1 extends MachineInstruction {
     } else {
       this.register.setFlags(0, 1, 0);
     }
-  }
-
-  wordLength(): number {
     return 1;
   }
 
@@ -382,12 +369,9 @@ class CPA1 extends MachineInstruction {
 }
 
 class JUMP2 extends MachineInstruction {
-  evaluate(): void {
+  evaluate(): number {
     this.register.setProgramCounter(this.addrValue());
-  }
-
-  wordLength(): number {
-    return 2;
+    return 0;
   }
 
   instructionNumber(): number {
@@ -400,13 +384,11 @@ class JUMP2 extends MachineInstruction {
 }
 
 class JZE2 extends MachineInstruction {
-  evaluate(): void {
+  evaluate(): number {
     if (this.register.getZeroFlag() === 1) {
       this.register.setProgramCounter(this.addrValue());
+      return 0;
     }
-  }
-
-  wordLength(): number {
     return 2;
   }
 
@@ -420,13 +402,11 @@ class JZE2 extends MachineInstruction {
 }
 
 class JMI2 extends MachineInstruction {
-  evaluate(): void {
+  evaluate(): number {
     if (this.register.getSignFlag() === 1) {
       this.register.setProgramCounter(this.addrValue());
+      return 0;
     }
-  }
-
-  wordLength(): number {
     return 2;
   }
 
