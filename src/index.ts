@@ -267,6 +267,37 @@ class Register {
   }
 }
 
+abstract class MachineInstruction {
+  private memory!: Memory;
+  private register!: Register;
+
+  abstract evaluate(): void;
+  abstract wordLength(): number;
+  abstract instructionNumber(): number;
+  abstract name(): string;
+
+  setup(memory: Memory, register: Register) {
+    this.memory = memory;
+    this.register = register;
+  }
+
+  private instructionWord(): WordValue {
+    return this.memory.getValueAt(this.register.getProgramCounter());
+  }
+
+  private getGRValue(): number {
+    return (this.instructionWord() & 0xF0) >> 4;
+  }
+
+  private getGROrIRValue(memory: Memory, regisger: Register): number {
+    return this.instructionWord() & 0xF;
+  }
+
+  private getAddrValue(): number {
+    return this.memory.getValueAt(this.register.getProgramCounter() + 1);
+  }
+}
+
 (async function () {
   const source: (string[])[] = sampleSource;
 
