@@ -298,17 +298,13 @@ class Register {
     }
     if (instruction === MACHINE_INSTRUCTION_NUMBER.SUBA[1]) {
       // TODO: ここでレジスタとメモリ間の比較を要実装
-      const r1Value = register.getGRAt(gR);
-      const r2Value = register.getGRAt(gROrIR);
-      register.setGRAt(gR, r1Value - r2Value);
+      register.setGRAt(gR, register.getGRAt(gR) - register.getGRAt(gROrIR));
       console.log(register);
     }
     if (instruction === MACHINE_INSTRUCTION_NUMBER.CPA[1]) {
       // TODO: ここでレジスタとメモリ間の比較を要実装
       // TODO: オーバーフロー要考慮
-      const r1Value = register.getGRAt(gR);
-      const r2Value = register.getGRAt(gROrIR);
-      const result = r1Value - r2Value;
+      const result = register.getGRAt(gR) - register.getGRAt(gROrIR);
       if (result > 0) {
         register.setFlags(0, 0, 0);
       } else if (result === 0) {
