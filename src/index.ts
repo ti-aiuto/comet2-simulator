@@ -254,6 +254,16 @@ class Register {
 
   // TODO: SPを定義
 
+  toString(): string {
+    let result = '';
+    result += ` PC: ${toWordHex(this.getProgramCounter())}\n`;
+    result += ` OF: ${toWordHex(this.getOverflowFlag())}\n`;
+    result += ` SF: ${toWordHex(this.getSignFlag())}\n`;
+    result += ` ZF: ${toWordHex(this.getZeroFlag())}\n`;
+    GENERAL_REGISTER_NAMES.forEach(name => result += `${name}: ${toWordHex(this.gRValues[name])}`);
+    return result;
+  }
+
   private gRKeyNameOf(index: number): string {
     const name = `GR${index}`;
     if (GENERAL_REGISTER_NAMES.includes(name)) {
@@ -421,6 +431,6 @@ class Machine {
   new Machine(memory, register, 0).execute();
 
   console.log('処理終了');
-  console.log(register);
+  console.log(register.toString());
   console.log(memory.toString());
 })();
