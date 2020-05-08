@@ -285,11 +285,11 @@ abstract class MachineInstruction {
     return this.memory.getValueAt(this.register.getProgramCounter());
   }
 
-  private getGRValue(): number {
+  private getGR1Value(): number {
     return (this.instructionWord() & 0xF0) >> 4;
   }
 
-  private getGROrIRValue(memory: Memory, regisger: Register): number {
+  private getGR2OrIRValue(memory: Memory, regisger: Register): number {
     return this.instructionWord() & 0xF;
   }
 
