@@ -371,35 +371,54 @@ const MACHINE_INSTRUCTION_IMPLIMENTATION: { [key: number]: MachineInstruction } 
   [MACHINE_INSTRUCTION_NUMBER.JMI[2]]: new JMI2(),
 });
 
-(async function () {
+class Machine {
+  constructor(
+    private memory: Memory,
+    private register: Register,
+    private beginAddr: MemoryAddress
+  ) {
+  }
+
+  execute() {
+    this.register.setProgramCounter(this.beginAddr);
+    while (true) {
+      if (this.instructionNumber() === MACHINE_INSTRUCTION_NUMBER.RET[1]) {
+        // TODO: SPの実装のときにここも直す
+        break;
+      }
+      this.executeInstruction();
+    }
+  }
+
+  private instructionNumber(): number {
+    const currentAddress = this.register.getProgramCounter();
+    return (this.memory.getValueAt(currentAddress) & 0xFF00) >> 8;
+  }
+
+  private executeInstruction() {
+    const instructionImpl = MACHINE_INSTRUCTION_IMPLIMENTATION[this.instructionNumber()];
+    if (!instructionImpl) {
+      throw new Error(`実装が未定義 ${this.instructionNumber()}`);
+    }
+    instructionImpl.setup(this.memory, this.register);
+    const step = instructionImpl.evaluate();
+    if (step === 0) {
+      return;
+    }
+    this.register.setProgramCounter(this.register.getProgramCounter() + step);
+  }
+}
+
+(function () {
   const source: (string[])[] = sampleSource;
 
   const memory = new Memory();
   const register = new Register();
 
   new Compiler(memory, 0, source, {}).compile();
+  new Machine(memory, register, 0).execute();
 
-  // TODO: START命令からの値を入れるようにする
-  register.setProgramCounter(0);
-  while (true) {
-    const currentAddress = register.getProgramCounter();
-    const instructionNumber = (memory.getValueAt(currentAddress) & 0xFF00) >> 8;
-    const instructionImpl = MACHINE_INSTRUCTION_IMPLIMENTATION[instructionNumber];
-    if (instructionNumber === MACHINE_INSTRUCTION_NUMBER.RET[1]) {
-      // TODO: SPの実装のときにここも直す
-      console.log('処理終了');
-      console.log(register);
-      console.log(memory.toString());
-      break;
-    }
-    if (!instructionImpl) {
-      throw new Error(`実装が未定義 ${instructionNumber}`);
-    }
-    instructionImpl.setup(memory, register);
-    const step = instructionImpl.evaluate();
-    if (step === 0) {
-      continue;
-    }
-    register.setProgramCounter(currentAddress + step);
-  }
+  console.log('処理終了');
+  console.log(register);
+  console.log(memory.toString());
 })();
