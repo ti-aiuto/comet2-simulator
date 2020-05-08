@@ -57,12 +57,16 @@ class LineAnalyzer {
     return null;
   }
 
-  isPseudoInstruction(): boolean {
-    return ['START', 'END', 'DC', 'DS'].includes(this.args[1]);
+  isMachineInstruction(): boolean {
+    return this.toInstructionNumber(this.args[1]) !== null;
   }
 
   buildFirstWord(): WordValue {
-    let word = this.toInstructionNumber(this.args[1]) * 0x100;
+    const instructionNumber = this.toInstructionNumber(this.args[1]);
+    if (!instructionNumber) {
+      throw new Error(`未定義の機械語 ${name}`);
+    }
+    let word = instructionNumber * 0x100;
     if (this.args[2].length) {
       if (this.isGeneralRegister(this.args[2])) {
         word |= this.extractRegisterNumber(this.args[2]) * 0x10;
@@ -109,12 +113,12 @@ class LineAnalyzer {
     return Number(value.slice(-1));
   }
 
-  private toInstructionNumber(name: string): number {
+  private toInstructionNumber(name: string): number | null {
     const value = MACHINE_INSTRUCTION_NUMBER[name];
     if (value) {
       return value;
     }
-    throw new Error(`未定義の機械語 ${name}`);
+    return null;
   }
 }
 
@@ -143,11 +147,11 @@ class Compiler {
       if (label) {
         this.labelToAddrMap[label] = currentAddress;
       }
-      if (this.lineAnalyzer.isPseudoInstruction()) {
-        currentAddress += this.compilePseudoInstruction(currentAddress, args);
+      if (this.lineAnalyzer.isMachineInstruction()) {
+        currentAddress += this.compileMachineInstruction(currentAddress, args);
         return;
       }
-      currentAddress += this.compileMachineInstruction(currentAddress, args);
+      currentAddress += this.compilePseudoInstruction(currentAddress, args);
     });
     console.log('アセンブラ命令処理完了');
     console.log(this.memory.toString());
@@ -181,7 +185,7 @@ class Compiler {
       // TODO: ここで内容分の語数を確保する
       return 1;
     }
-    throw new Error(`不正な疑似命令 ${instruction}`);
+    throw new Error(`未定義の命令 ${instruction}`);
   }
 
   private compileMachineInstruction(currentAddress: number, args: string[]) {
