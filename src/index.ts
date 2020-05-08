@@ -18,7 +18,7 @@ const MACHINE_INSTRUCTION_NUMBER: { [key: string]: { [key: number]: number } } =
 });
 
 function toWordHex(num: number): string {
-  return ('0000' + (num.toString(16))).slice(-4);
+  return ('0000' + (num.toString(16))).slice(-4).toUpperCase();
 }
 
 class Memory {
@@ -34,6 +34,7 @@ class Memory {
 
   toString(): string {
     let result = '';
+    // TODO: ここで順序を保証する
     for (let [key, value] of Object.entries(this.values)) {
       result += `${toWordHex(Number(key))}: ${toWordHex(Number(value))}\n`.toUpperCase()
     }
@@ -260,8 +261,8 @@ class Register {
     result += ` OF: ${toWordHex(this.getOverflowFlag())}\n`;
     result += ` SF: ${toWordHex(this.getSignFlag())}\n`;
     result += ` ZF: ${toWordHex(this.getZeroFlag())}\n`;
-    GENERAL_REGISTER_NAMES.forEach(name => result += `${name}: ${toWordHex(this.gRValues[name])}`);
-    return result;
+    GENERAL_REGISTER_NAMES.forEach(name => result += `${name}: ${toWordHex(this.gRValues[name])}\n`);
+    return result.trimRight();
   }
 
   private gRKeyNameOf(index: number): string {
