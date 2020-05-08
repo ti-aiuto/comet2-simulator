@@ -361,16 +361,6 @@ class JMI2 extends MachineInstruction {
   }
 }
 
-const MACHINE_INSTRUCTION_IMPLIMENTATION: { [key: number]: MachineInstruction } = Object.freeze({
-  [MACHINE_INSTRUCTION_NUMBER.LD[2]]: new LD2(),
-  [MACHINE_INSTRUCTION_NUMBER.ST[2]]: new ST2(),
-  [MACHINE_INSTRUCTION_NUMBER.SUBA[1]]: new SUBA1(),
-  [MACHINE_INSTRUCTION_NUMBER.CPA[1]]: new CPA1(),
-  [MACHINE_INSTRUCTION_NUMBER.JUMP[2]]: new JUMP2(),
-  [MACHINE_INSTRUCTION_NUMBER.JZE[2]]: new JZE2(),
-  [MACHINE_INSTRUCTION_NUMBER.JMI[2]]: new JMI2(),
-});
-
 class Machine {
   constructor(
     private memory: Memory,
@@ -396,7 +386,7 @@ class Machine {
   }
 
   private executeInstruction() {
-    const instructionImpl = MACHINE_INSTRUCTION_IMPLIMENTATION[this.instructionNumber()];
+    const instructionImpl = Machine.MACHINE_INSTRUCTION_IMPLIMENTATION[this.instructionNumber()];
     if (!instructionImpl) {
       throw new Error(`実装が未定義 ${this.instructionNumber()}`);
     }
@@ -407,6 +397,16 @@ class Machine {
     }
     this.register.setProgramCounter(this.register.getProgramCounter() + step);
   }
+
+  static readonly MACHINE_INSTRUCTION_IMPLIMENTATION: { [key: number]: MachineInstruction } = Object.freeze({
+    [MACHINE_INSTRUCTION_NUMBER.LD[2]]: new LD2(),
+    [MACHINE_INSTRUCTION_NUMBER.ST[2]]: new ST2(),
+    [MACHINE_INSTRUCTION_NUMBER.SUBA[1]]: new SUBA1(),
+    [MACHINE_INSTRUCTION_NUMBER.CPA[1]]: new CPA1(),
+    [MACHINE_INSTRUCTION_NUMBER.JUMP[2]]: new JUMP2(),
+    [MACHINE_INSTRUCTION_NUMBER.JZE[2]]: new JZE2(),
+    [MACHINE_INSTRUCTION_NUMBER.JMI[2]]: new JMI2(),
+  });
 }
 
 (function () {
