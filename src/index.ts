@@ -355,7 +355,88 @@ class SUBA1 extends MachineInstruction {
   }
 }
 
+class CPA1 extends MachineInstruction {
+  evaluate(): void {
+    const result = this.register.getGRAt(this.gR1Value()) - this.register.getGRAt(this.gR2OrIRValue());
+    if (result > 0) {
+      this.register.setFlags(0, 0, 0);
+    } else if (result === 0) {
+      this.register.setFlags(0, 0, 1);
+    } else {
+      this.register.setFlags(0, 1, 0);
+    }
+  }
 
+  wordLength(): number {
+    return 1;
+  }
+
+  instructionNumber(): number {
+    return 0x40;
+  }
+
+  name(): string {
+    return 'CPA';
+  }
+}
+
+class JUMP2 extends MachineInstruction {
+  evaluate(): void {
+    this.register.setProgramCounter(this.addrValue());
+  }
+
+  wordLength(): number {
+    return 2;
+  }
+
+  instructionNumber(): number {
+    return 0x64;
+  }
+
+  name(): string {
+    return 'JUMP';
+  }
+}
+
+class JZE2 extends MachineInstruction {
+  evaluate(): void {
+    if (this.register.getZeroFlag() === 1) {
+      this.register.setProgramCounter(this.addrValue());
+    }
+  }
+
+  wordLength(): number {
+    return 2;
+  }
+
+  instructionNumber(): number {
+    return 0x63;
+  }
+
+  name(): string {
+    return 'JZE';
+  }
+}
+
+class JMI2 extends MachineInstruction {
+  evaluate(): void {
+    if (this.register.getSignFlag() === 1) {
+      this.register.setProgramCounter(this.addrValue());
+    }
+  }
+
+  wordLength(): number {
+    return 2;
+  }
+
+  instructionNumber(): number {
+    return 0x61;
+  }
+
+  name(): string {
+    return 'JMI';
+  }
+}
 
 (async function () {
   const source: (string[])[] = sampleSource;
