@@ -433,52 +433,28 @@ class JMI2 extends MachineInstruction {
     let currentAddress = register.getProgramCounter();
     const instructionLine = memory.getValueAt(currentAddress);
     console.log(instructionLine);
-    const addr = memory.getValueAt(currentAddress + 1);
     const instruction = (instructionLine & 0xFF00) >> 8;
-    const gR = (instructionLine & 0xF0) >> 4;
-    const gROrIR = instructionLine & 0xF;
-    let usedAddr = false;
+    let operation: MachineInstruction | null = null;
     if (instruction === MACHINE_INSTRUCTION_NUMBER.LD[2]) {
-      // TODO: ここでレジスタ間の移動、指標レジスタ考慮を要実装
-      const operation = new LD2();
-      operation.setup(memory, register);
-      operation.evaluate();
-      usedAddr = true;
-      console.log(register);
+      operation = new LD2();
     }
     if (instruction === MACHINE_INSTRUCTION_NUMBER.ST[2]) {
-      const operation = new ST2();
-      operation.setup(memory, register);
-      operation.evaluate();
-      usedAddr = true;
+      operation = new ST2();
     }
     if (instruction === MACHINE_INSTRUCTION_NUMBER.SUBA[1]) {
-      const operation = new SUBA1();
-      operation.setup(memory, register);
-      operation.evaluate();
-      console.log(register);
+      operation = new SUBA1();
     }
     if (instruction === MACHINE_INSTRUCTION_NUMBER.CPA[1]) {
-      const operation = new CPA1();
-      operation.setup(memory, register);
-      operation.evaluate();
-      console.log(register);
+      operation = new CPA1();
     }
     if (instruction === MACHINE_INSTRUCTION_NUMBER.JUMP[2]) {
-      register.setProgramCounter(addr);
-      continue;
+      operation = new JUMP2();
     }
     if (instruction === MACHINE_INSTRUCTION_NUMBER.JZE[2]) {
-      if (register.getZeroFlag() === 1) {
-        register.setProgramCounter(addr);
-        continue;
-      }
+      operation = new JZE2();
     }
     if (instruction === MACHINE_INSTRUCTION_NUMBER.JMI[2]) {
-      if (register.getSignFlag() === 1) {
-        register.setProgramCounter(addr);
-        continue;
-      }
+      operation = new JMI2();
     }
     if (instruction === MACHINE_INSTRUCTION_NUMBER.RET[1]) {
       console.log('処理終了');
@@ -486,11 +462,12 @@ class JMI2 extends MachineInstruction {
       console.log(memory.toString());
       break;
     }
-    if (usedAddr) {
-      currentAddress += 2
-    } else {
-      currentAddress += 1;
+    if (operation) {
+      operation.setup(memory, register);
+      const step = operation.evaluate();
+      if (step) {
+        register.setProgramCounter(currentAddress + step);
+      }
     }
-    register.setProgramCounter(currentAddress);
   }
 })();
