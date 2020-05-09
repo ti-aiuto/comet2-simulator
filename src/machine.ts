@@ -100,7 +100,7 @@ class CPA2 extends MachineInstruction {
 
 class JUMP2 extends MachineInstruction {
   evaluate(): number {
-    this.register.setProgramCounter(this.addrValue());
+    this.register.setProgramCounter(this.addrIRAddedValue());
     return 0;
   }
 }
@@ -108,7 +108,7 @@ class JUMP2 extends MachineInstruction {
 class JZE2 extends MachineInstruction {
   evaluate(): number {
     if (this.register.getZeroFlag() === 1) {
-      this.register.setProgramCounter(this.addrValue());
+      this.register.setProgramCounter(this.addrIRAddedValue());
       return 0;
     }
     return 2;
@@ -118,7 +118,7 @@ class JZE2 extends MachineInstruction {
 class JMI2 extends MachineInstruction {
   evaluate(): number {
     if (this.register.getSignFlag() === 1) {
-      this.register.setProgramCounter(this.addrValue());
+      this.register.setProgramCounter(this.addrIRAddedValue());
       return 0;
     }
     return 2;
@@ -128,7 +128,7 @@ class JMI2 extends MachineInstruction {
 class JPL2 extends MachineInstruction {
   evaluate(): number {
     if (this.register.getSignFlag() === 0 && this.register.getZeroFlag() === 0) {
-      this.register.setProgramCounter(this.addrValue());
+      this.register.setProgramCounter(this.addrIRAddedValue());
       return 0;
     }
     return 2;
