@@ -45,6 +45,13 @@ class LD2 extends MachineInstruction {
   }
 }
 
+class LAD2 extends MachineInstruction {
+  evaluate(): number {
+    this.register.setGRAt(this.gR1Value(), this.addrIRAddedValue());
+    return 2;
+  }
+}
+
 class ST2 extends MachineInstruction {
   evaluate(): number {
     this.memory.setValueAt(this.addrIRAddedValue(), this.register.getGRAt(this.gR1Value()));
@@ -194,6 +201,7 @@ export class Machine {
 
   static readonly MACHINE_INSTRUCTION_IMPLIMENTATION: { [key: number]: MachineInstruction } = Object.freeze({
     [MACHINE_INSTRUCTION_NUMBER.LD[2]]: new LD2(),
+    [MACHINE_INSTRUCTION_NUMBER.LAD[2]]: new LAD2(),
     [MACHINE_INSTRUCTION_NUMBER.ST[2]]: new ST2(),
     [MACHINE_INSTRUCTION_NUMBER.SUBA[1]]: new SUBA1(),
     [MACHINE_INSTRUCTION_NUMBER.ADDA[2]]: new ADDA2(),

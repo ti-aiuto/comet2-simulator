@@ -15,7 +15,8 @@ export const MACHINE_INSTRUCTION_NUMBER: { [key: string]: { [key: number]: numbe
   ADDA: { 2: 0x20 },
   JUMP: { 2: 0x64 },
   RET: { 1: 0x81 },
-  SVC: { 2: 0xFF }
+  SVC: { 2: 0xFF },
+  LAD: { 2: 0x12 }
 });
 
 export function toWordHex(num: number): string {
