@@ -62,13 +62,32 @@ export class LineAnalyzer {
   }
 
   parseAddrLabel(): string | null {
-    // TODO: 本当はここでラベルかアドレスかの判定が必要
     return this.extractAddrRawValue();
   }
 
-  parseAddrValue(): MemoryAddress {
-    // TODO: 要実装
-    return 0;
+  parseLiteralValue(): WordValue | null {
+    const value = this.extractAddrRawValue();
+    if (!value || !value.startsWith('=')) {
+      return null;
+    }
+    return this.parseConst(value.substring(1));
+  }
+
+  parseAddrConstAddr(): MemoryAddress | null {
+    return this.parseConst(this.extractAddrRawValue());
+  }
+
+  private parseConst(value: string | null): number | null {
+    if (!value) {
+      return null;
+    }
+    if (value.startsWith('#')) {
+      return Number.parseInt(value.substring(1), 16);
+    }
+    if (['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-'].includes(value[0])) {
+      return Number.parseInt(value);
+    }
+    return null;
   }
 
   private extractAddrRawValue(): string | null {
