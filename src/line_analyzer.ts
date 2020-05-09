@@ -9,11 +9,7 @@ export class LineAnalyzer {
 
   load(args: string[]) {
     this.args = args;
-    const operands = args[2].split(';')[0].split(',').map(item => item.trim());
-    while (operands.length < 3) {
-      operands.push('');
-    }
-    this.operands = operands;
+    this.operands = args[2].split(';')[0].split(',').map(item => item.trim());
   }
 
   parseLabel(): string | null {
@@ -31,11 +27,11 @@ export class LineAnalyzer {
   buildFirstWord(): WordValue {
     let wordLength = 1;
     let word = 0;
-    if (this.operands[0].length) {
+    if (this.operands[0]?.length) {
       if (this.isGeneralRegister(this.operands[0])) {
         // r1
         word |= this.extractRegisterNumber(this.operands[0]) * 0x10;
-        if (this.operands[1].length) {
+        if (this.operands[1]?.length) {
           if (this.isGeneralRegister(this.operands[1])) {
             // r2
             word |= this.extractRegisterNumber(this.operands[1]);
@@ -43,14 +39,14 @@ export class LineAnalyzer {
             // addr
             wordLength = 2;
           }
-        } else if (this.operands[2].length && this.isGeneralRegister(this.operands[2])) {
+        } else if (this.operands[2]?.length && this.isGeneralRegister(this.operands[2])) {
           // x
           word |= this.extractRegisterNumber(this.operands[2]);
         }
       } else {
         // addr
         wordLength = 2;
-        if (this.operands[1].length && this.isGeneralRegister(this.operands[1])) {
+        if (this.operands[1]?.length && this.isGeneralRegister(this.operands[1])) {
           // addr, x
           word |= this.extractRegisterNumber(this.operands[1]);
         }
@@ -90,10 +86,10 @@ export class LineAnalyzer {
   }
 
   private extractAddrRawValue(): string | null {
-    if (this.operands[0].length > 0 && !this.isGeneralRegister(this.operands[0])) {
+    if (this.operands[0]?.length > 0 && !this.isGeneralRegister(this.operands[0])) {
       return this.operands[0];
     }
-    if (this.operands[1].length > 0 && !this.isGeneralRegister(this.operands[1])) {
+    if (this.operands[1]?.length > 0 && !this.isGeneralRegister(this.operands[1])) {
       return this.operands[1];
     }
     return null;
