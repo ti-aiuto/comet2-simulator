@@ -199,14 +199,14 @@ export class Machine {
   ) {
   }
 
+  private debug = true;
+
   async execute(): Promise<void> {
     this.register.setProgramCounter(this.beginAddr);
     while (true) {
-      if (this.instructionNumber() === MACHINE_INSTRUCTION_NUMBER.RET[1]) {
-        // TODO: SPの実装のときにここも直す
+      if (await this.executeInstruction() === false) {
         break;
       }
-      await this.executeInstruction();
     }
   }
 
@@ -215,24 +215,34 @@ export class Machine {
     return (this.memory.getValueAt(currentAddress) & 0xFF00) >> 8;
   }
 
-  private async executeInstruction(): Promise<void> {
+  private async executeInstruction(): Promise<boolean> {
+    if (this.instructionNumber() === MACHINE_INSTRUCTION_NUMBER.RET[1]) {
+      // TODO: SPの実装のときにここも直す
+      return false;
+    }
+
     const instructionImpl = Machine.MACHINE_INSTRUCTION_IMPLIMENTATION[this.instructionNumber()];
     if (!instructionImpl) {
       throw new Error(`実装が未定義 ${this.instructionNumber()} at ${this.register.getProgramCounter()}`);
     }
 
-    console.log(`PC: ${toWordHex(this.register.getProgramCounter())}`);
+    if (this.debug) {
+      console.log(`PC: #${toWordHex(this.register.getProgramCounter())}`);
+    }
 
     instructionImpl.setup(this.memory, this.register);
     const step = await instructionImpl.evaluate();
 
-    console.log(this.memory.toString());
-    console.log(this.register.toString());
+    if (this.debug) {
+      console.log(this.memory.toString());
+      console.log(this.register.toString());
+    }
 
     if (step === 0) {
-      return;
+      return true;
     }
     this.register.setProgramCounter(this.register.getProgramCounter() + step);
+    return true;
   }
 
   static readonly MACHINE_INSTRUCTION_IMPLIMENTATION: { [key: number]: MachineInstruction } = Object.freeze({
