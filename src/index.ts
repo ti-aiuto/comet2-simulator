@@ -300,20 +300,26 @@ abstract class MachineInstruction {
   protected addrValue(): number {
     return this.memory.getValueAt(this.register.getProgramCounter() + 1);
   }
+
+  protected addrIRAddedValue(): number {
+    let addr = this.addrValue();
+    if (this.gR2OrIRValue() !== 0) {
+      addr += this.register.getGRAt(this.gR2OrIRValue());
+    } 
+    return addr;
+  }
 }
 
 class LD2 extends MachineInstruction {
   evaluate(): number {
-    // TODO: 指標レジスタ考慮を要実装
-    this.register.setGRAt(this.gR1Value(), this.memory.getValueAt(this.addrValue()));
+    this.register.setGRAt(this.gR1Value(), this.memory.getValueAt(this.addrIRAddedValue()));
     return 2;
   }
 }
 
 class ST2 extends MachineInstruction {
   evaluate(): number {
-    // TODO: 指標レジスタ考慮を要実装
-    this.memory.setValueAt(this.addrValue(), this.register.getGRAt(this.gR1Value()));
+    this.memory.setValueAt(this.addrIRAddedValue(), this.register.getGRAt(this.gR1Value()));
     return 2;
   }
 }
