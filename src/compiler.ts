@@ -66,7 +66,7 @@ export class Compiler {
       return 1;
     }
     if (instruction === 'OUT') {
-      this.memory.setValueAt(currentAddress, MACHINE_INSTRUCTION_NUMBER.SVC[2]);
+      this.memory.setValueAt(currentAddress, MACHINE_INSTRUCTION_NUMBER.SVC[2] * 0x100);
       this.memory.setValueAt(currentAddress + 1, 0);
       this.memory.setValueAt(currentAddress + 2, 0);
       this.labelAddrsToReplace.push([currentAddress + 1, args[2]]);

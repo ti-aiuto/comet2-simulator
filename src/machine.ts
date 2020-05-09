@@ -162,7 +162,7 @@ export class Machine {
   private executeInstruction() {
     const instructionImpl = Machine.MACHINE_INSTRUCTION_IMPLIMENTATION[this.instructionNumber()];
     if (!instructionImpl) {
-      throw new Error(`実装が未定義 ${this.instructionNumber()}`);
+      throw new Error(`実装が未定義 ${this.instructionNumber()} at ${this.register.getProgramCounter()}`);
     }
     instructionImpl.setup(this.memory, this.register);
     const step = instructionImpl.evaluate();
