@@ -6,7 +6,7 @@ abstract class MachineInstruction {
   protected memory!: Memory;
   protected register!: Register;
 
-  abstract evaluate(): number;
+  async abstract evaluate(): Promise<number>;
 
   setup(memory: Memory, register: Register) {
     this.memory = memory;
@@ -49,7 +49,7 @@ abstract class MachineInstruction {
 }
 
 class AND1 extends MachineInstruction {
-  evaluate(): number {
+  async evaluate(): Promise<number> {
     const result = this.gR1Value() & this.gR2OrIRValue();
     this.register.setGRAt(this.gR1Value(), result);
     this.setFlags(result);
@@ -58,7 +58,7 @@ class AND1 extends MachineInstruction {
 }
 
 class AND2 extends MachineInstruction {
-  evaluate(): number {
+  async evaluate(): Promise<number> {
     const result = this.gR1Value() & this.memory.getValueAt(this.gR2OrIRValue());
     this.register.setGRAt(this.gR1Value(), result);
     this.setFlags(result);
@@ -67,7 +67,7 @@ class AND2 extends MachineInstruction {
 }
 
 class LD1 extends MachineInstruction {
-  evaluate(): number {
+  async evaluate(): Promise<number> {
     const result = this.memory.getValueAt(this.gR2OrIRValue());
     this.register.setGRAt(this.gR1Value(), result);
     this.setFlags(result);
@@ -76,7 +76,7 @@ class LD1 extends MachineInstruction {
 }
 
 class LD2 extends MachineInstruction {
-  evaluate(): number {
+  async evaluate(): Promise<number> {
     const result = this.memory.getValueAt(this.addrIRAddedValue());
     this.register.setGRAt(this.gR1Value(), result);
     this.setFlags(result);
@@ -85,21 +85,21 @@ class LD2 extends MachineInstruction {
 }
 
 class LAD2 extends MachineInstruction {
-  evaluate(): number {
+  async evaluate(): Promise<number> {
     this.register.setGRAt(this.gR1Value(), this.addrIRAddedValue());
     return 2;
   }
 }
 
 class ST2 extends MachineInstruction {
-  evaluate(): number {
+  async evaluate(): Promise<number> {
     this.memory.setValueAt(this.addrIRAddedValue(), this.register.getGRAt(this.gR1Value()));
     return 2;
   }
 }
 
 class SUBA1 extends MachineInstruction {
-  evaluate(): number {
+  async evaluate(): Promise<number> {
     // TODO: オーバーフロー要考慮
     const result = this.register.getGRAt(this.gR1Value()) - this.register.getGRAt(this.gR2OrIRValue());
     this.register.setGRAt(this.gR1Value(), result);
@@ -109,7 +109,7 @@ class SUBA1 extends MachineInstruction {
 }
 
 class ADDA2 extends MachineInstruction {
-  evaluate(): number {
+  async evaluate(): Promise<number> {
     // TODO: オーバーフロー要考慮
     const result = this.register.getGRAt(this.gR1Value()) + this.memory.getValueAt(this.addrIRAddedValue());
     this.register.setGRAt(this.gR1Value(), result);
@@ -119,7 +119,7 @@ class ADDA2 extends MachineInstruction {
 }
 
 class CPA1 extends MachineInstruction {
-  evaluate(): number {
+  async evaluate(): Promise<number> {
     const result = this.register.getGRAt(this.gR1Value()) - this.register.getGRAt(this.gR2OrIRValue());
     this.setFlags(result);
     return 1;
@@ -127,7 +127,7 @@ class CPA1 extends MachineInstruction {
 }
 
 class CPA2 extends MachineInstruction {
-  evaluate(): number {
+  async evaluate(): Promise<number> {
     const result = this.register.getGRAt(this.gR1Value()) - this.memory.getValueAt(this.addrIRAddedValue());
     this.setFlags(result);
     return 2;
@@ -135,14 +135,14 @@ class CPA2 extends MachineInstruction {
 }
 
 class JUMP2 extends MachineInstruction {
-  evaluate(): number {
+  async evaluate(): Promise<number> {
     this.register.setProgramCounter(this.addrIRAddedValue());
     return 0;
   }
 }
 
 class JZE2 extends MachineInstruction {
-  evaluate(): number {
+  async evaluate(): Promise<number> {
     if (this.register.getZeroFlag() === 1) {
       this.register.setProgramCounter(this.addrIRAddedValue());
       return 0;
@@ -152,7 +152,7 @@ class JZE2 extends MachineInstruction {
 }
 
 class JMI2 extends MachineInstruction {
-  evaluate(): number {
+  async evaluate(): Promise<number> {
     if (this.register.getSignFlag() === 1) {
       this.register.setProgramCounter(this.addrIRAddedValue());
       return 0;
@@ -162,7 +162,7 @@ class JMI2 extends MachineInstruction {
 }
 
 class JPL2 extends MachineInstruction {
-  evaluate(): number {
+  async evaluate(): Promise<number> {
     if (this.register.getSignFlag() === 0 && this.register.getZeroFlag() === 0) {
       this.register.setProgramCounter(this.addrIRAddedValue());
       return 0;
@@ -172,7 +172,7 @@ class JPL2 extends MachineInstruction {
 }
 
 class SVC2 extends MachineInstruction {
-  evaluate(): number {
+  async evaluate(): Promise<number> {
     const instruction = this.memory.getValueAt(this.register.getProgramCounter());
     const typeValue = instruction & 0xF;
     if (typeValue === 2) {
@@ -199,14 +199,14 @@ export class Machine {
   ) {
   }
 
-  execute() {
+  async execute(): Promise<void> {
     this.register.setProgramCounter(this.beginAddr);
     while (true) {
       if (this.instructionNumber() === MACHINE_INSTRUCTION_NUMBER.RET[1]) {
         // TODO: SPの実装のときにここも直す
         break;
       }
-      this.executeInstruction();
+      await this.executeInstruction();
     }
   }
 
@@ -215,13 +215,13 @@ export class Machine {
     return (this.memory.getValueAt(currentAddress) & 0xFF00) >> 8;
   }
 
-  private executeInstruction() {
+  private async executeInstruction(): Promise<void> {
     const instructionImpl = Machine.MACHINE_INSTRUCTION_IMPLIMENTATION[this.instructionNumber()];
     if (!instructionImpl) {
       throw new Error(`実装が未定義 ${this.instructionNumber()} at ${this.register.getProgramCounter()}`);
     }
     instructionImpl.setup(this.memory, this.register);
-    const step = instructionImpl.evaluate();
+    const step = await instructionImpl.evaluate();
     if (step === 0) {
       return;
     }

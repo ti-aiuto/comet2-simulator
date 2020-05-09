@@ -6,7 +6,7 @@ import { Compiler } from './compiler';
 import { Machine } from './machine';
 import { parseSource } from './utils';
 
-(function () {
+(async function () {
   const sourceText = fs.readFileSync(process.argv[2], 'utf-8').toString();
   const source: (string[])[] = parseSource(sourceText);
 
@@ -22,7 +22,7 @@ import { parseSource } from './utils';
   console.log(labelToAddrMap);
 
   // TODO: START命令から開始位置を持ってくる
-  new Machine(memory, register, 0).execute();
+  await new Machine(memory, register, 0).execute();
 
   console.log('処理終了');
   console.log(register.toString());
