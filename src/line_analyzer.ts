@@ -1,11 +1,19 @@
 import { MACHINE_INSTRUCTION_NUMBER, WordValue, MemoryAddress, GENERAL_REGISTER_NAMES, parseConst } from "./utils";
 
 export class LineAnalyzer {
-  constructor(private args: string[] = []) {
+  private args: string[] = []
+  private operands: string[] = [];
+
+  constructor() {
   }
 
   load(args: string[]) {
     this.args = args;
+    const operands = args[2].split(';')[0].split(',').map(item => item.trim());
+    while (operands.length < 3) {
+      operands.push('');
+    }
+    this.operands = operands;
   }
 
   parseLabel(): string | null {
@@ -23,28 +31,28 @@ export class LineAnalyzer {
   buildFirstWord(): WordValue {
     let wordLength = 1;
     let word = 0;
-    if (this.args[2].length) {
-      if (this.isGeneralRegister(this.args[2])) {
+    if (this.operands[0].length) {
+      if (this.isGeneralRegister(this.operands[0])) {
         // r1
-        word |= this.extractRegisterNumber(this.args[2]) * 0x10;
-        if (this.args[3].length) {
-          if (this.isGeneralRegister(this.args[3])) {
+        word |= this.extractRegisterNumber(this.operands[0]) * 0x10;
+        if (this.operands[1].length) {
+          if (this.isGeneralRegister(this.operands[1])) {
             // r2
-            word |= this.extractRegisterNumber(this.args[3]);
+            word |= this.extractRegisterNumber(this.operands[1]);
           } else {
             // addr
             wordLength = 2;
           }
-        } else if (this.args[4].length && this.isGeneralRegister(this.args[4])) {
+        } else if (this.operands[2].length && this.isGeneralRegister(this.operands[2])) {
           // x
-          word |= this.extractRegisterNumber(this.args[4]);
+          word |= this.extractRegisterNumber(this.operands[2]);
         }
       } else {
         // addr
         wordLength = 2;
-        if (this.args[3].length && this.isGeneralRegister(this.args[3])) {
+        if (this.operands[1].length && this.isGeneralRegister(this.operands[1])) {
           // addr, x
-          word |= this.extractRegisterNumber(this.args[3]);
+          word |= this.extractRegisterNumber(this.operands[1]);
         }
       }
     }
@@ -77,12 +85,16 @@ export class LineAnalyzer {
     return parseConst(this.extractAddrRawValue());
   }
 
+  parseOperands(): string[] {
+    return [...this.operands];
+  }
+
   private extractAddrRawValue(): string | null {
-    if (this.args[2].length > 0 && !this.isGeneralRegister(this.args[2])) {
-      return this.args[2];
+    if (this.operands[0].length > 0 && !this.isGeneralRegister(this.operands[0])) {
+      return this.operands[0];
     }
-    if (this.args[3].length > 0 && !this.isGeneralRegister(this.args[3])) {
-      return this.args[3];
+    if (this.operands[1].length > 0 && !this.isGeneralRegister(this.operands[1])) {
+      return this.operands[1];
     }
     return null;
   }

@@ -69,8 +69,9 @@ export class Compiler {
       this.memory.setValueAt(currentAddress, MACHINE_INSTRUCTION_NUMBER.SVC[2] * 0x100 | 2);
       this.memory.setValueAt(currentAddress + 1, 0);
       this.memory.setValueAt(currentAddress + 2, 0);
-      this.labelAddrsToReplace.push([currentAddress + 1, args[2]]);
-      this.labelAddrsToReplace.push([currentAddress + 2, args[3]]);
+      const operands = this.lineAnalyzer.parseOperands();
+      this.labelAddrsToReplace.push([currentAddress + 1, operands[0]]);
+      this.labelAddrsToReplace.push([currentAddress + 2, operands[1]]);
       return 3;
     }
     throw new Error(`未定義の命令 ${instruction}`);

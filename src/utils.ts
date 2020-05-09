@@ -27,7 +27,7 @@ export function parseSource(text: string): string[][] {
     .replace(/\r\n?/g, "\n")
     .trim()
     .split("\n")
-    .map((line) => [...line.split("\t"), '', '', '', ''].slice(0, 5));
+    .map((line) => [...line.split("\t"), '', '', ''].slice(0, 4));
 }
 
 export function parseConst(value: string | null): number | null {
