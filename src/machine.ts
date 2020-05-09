@@ -36,18 +36,32 @@ abstract class MachineInstruction {
     }
     return addr;
   }
+
+  protected setFlags(value: number) {
+    if (value > 0) {
+      this.register.setFlags(0, 0, 0);
+    } else if (value === 0) {
+      this.register.setFlags(0, 0, 1);
+    } else {
+      this.register.setFlags(0, 1, 0);
+    }
+  }
 }
 
 class LD1 extends MachineInstruction {
   evaluate(): number {
-    this.register.setGRAt(this.gR1Value(), this.memory.getValueAt(this.gR2OrIRValue()));
+    const result = this.memory.getValueAt(this.gR2OrIRValue());
+    this.register.setGRAt(this.gR1Value(), result);
+    this.setFlags(result);
     return 1;
   }
 }
 
 class LD2 extends MachineInstruction {
   evaluate(): number {
-    this.register.setGRAt(this.gR1Value(), this.memory.getValueAt(this.addrIRAddedValue()));
+    const result = this.memory.getValueAt(this.addrIRAddedValue());
+    this.register.setGRAt(this.gR1Value(), result);
+    this.setFlags(result);
     return 2;
   }
 }
@@ -69,8 +83,9 @@ class ST2 extends MachineInstruction {
 class SUBA1 extends MachineInstruction {
   evaluate(): number {
     // TODO: オーバーフロー要考慮
-    this.register.setGRAt(this.gR1Value(),
-      this.register.getGRAt(this.gR1Value()) - this.register.getGRAt(this.gR2OrIRValue()));
+    const result = this.register.getGRAt(this.gR1Value()) - this.register.getGRAt(this.gR2OrIRValue());
+    this.register.setGRAt(this.gR1Value(), result);
+    this.setFlags(result);
     return 1;
   }
 }
@@ -78,8 +93,9 @@ class SUBA1 extends MachineInstruction {
 class ADDA2 extends MachineInstruction {
   evaluate(): number {
     // TODO: オーバーフロー要考慮
-    this.register.setGRAt(this.gR1Value(),
-      this.register.getGRAt(this.gR1Value()) + this.memory.getValueAt(this.addrIRAddedValue()));
+    const result = this.register.getGRAt(this.gR1Value()) + this.memory.getValueAt(this.addrIRAddedValue());
+    this.register.setGRAt(this.gR1Value(), result);
+    this.setFlags(result);
     return 2;
   }
 }
@@ -87,13 +103,7 @@ class ADDA2 extends MachineInstruction {
 class CPA1 extends MachineInstruction {
   evaluate(): number {
     const result = this.register.getGRAt(this.gR1Value()) - this.register.getGRAt(this.gR2OrIRValue());
-    if (result > 0) {
-      this.register.setFlags(0, 0, 0);
-    } else if (result === 0) {
-      this.register.setFlags(0, 0, 1);
-    } else {
-      this.register.setFlags(0, 1, 0);
-    }
+    this.setFlags(result);
     return 1;
   }
 }
@@ -101,13 +111,7 @@ class CPA1 extends MachineInstruction {
 class CPA2 extends MachineInstruction {
   evaluate(): number {
     const result = this.register.getGRAt(this.gR1Value()) - this.memory.getValueAt(this.addrIRAddedValue());
-    if (result > 0) {
-      this.register.setFlags(0, 0, 0);
-    } else if (result === 0) {
-      this.register.setFlags(0, 0, 1);
-    } else {
-      this.register.setFlags(0, 1, 0);
-    }
+    this.setFlags(result);
     return 2;
   }
 }
