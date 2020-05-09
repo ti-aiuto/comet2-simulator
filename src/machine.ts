@@ -68,7 +68,7 @@ class AND2 extends MachineInstruction {
 
 class LD1 extends MachineInstruction {
   async evaluate(): Promise<number> {
-    const result = this.gR2OrIRValue();
+    const result = this.register.getGRAt(this.gR2OrIRValue());
     this.register.setGRAt(this.gR1Value(), result);
     this.setFlags(result);
     return 1;
