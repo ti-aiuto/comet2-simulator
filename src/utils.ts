@@ -18,3 +18,11 @@ export const MACHINE_INSTRUCTION_NUMBER: { [key: string]: { [key: number]: numbe
 export function toWordHex(num: number): string {
   return ('0000' + (num.toString(16))).slice(-4).toUpperCase();
 }
+
+export function parseSource(text: string): string[][] {
+  return text
+    .replace(/\r\n?/g, "\n")
+    .trim()
+    .split("\n")
+    .map((line) => [...line.split("\t"), '', '', '', ''].slice(0, 5));
+}
