@@ -1,4 +1,4 @@
-import { sampleSource } from './sample_source';
+import fs from 'fs';
 
 type MemoryAddress = number;
 type WordValue = number;
@@ -305,7 +305,7 @@ abstract class MachineInstruction {
     let addr = this.addrValue();
     if (this.gR2OrIRValue() !== 0) {
       addr += this.register.getGRAt(this.gR2OrIRValue());
-    } 
+    }
     return addr;
   }
 }
@@ -422,9 +422,17 @@ class Machine {
   });
 }
 
-(function () {
-  const source: (string[])[] = sampleSource;
+function parseSource(text: string): string[][] {
+  return text
+    .replace(/\r\n?/g, "\n")
+    .trim()
+    .split("\n")
+    .map((line) => [...line.split("\t"), '', '', '', ''].slice(0, 5));
+}
 
+(function () {
+  const sourceText = fs.readFileSync(process.argv[2], 'utf-8').toString();
+  const source: (string[])[] = parseSource(sourceText);
   const memory = new Memory();
   const register = new Register();
 
