@@ -22,7 +22,7 @@ export class Compiler {
     let currentAddress = this.beginAddr;
     // まずラベルの対応付け、DC, DSを処理する
     this.source.forEach((args) => {
-      this.lineAnalyzer.update(args);
+      this.lineAnalyzer.load(args);
       const label = this.lineAnalyzer.parseLabel();
       if (label) {
         this.labelToAddrMap[label] = currentAddress;

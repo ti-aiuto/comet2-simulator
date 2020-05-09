@@ -4,7 +4,7 @@ export class LineAnalyzer {
   constructor(private args: string[] = []) {
   }
 
-  update(args: string[]) {
+  load(args: string[]) {
     this.args = args;
   }
 
