@@ -10,6 +10,7 @@ export const MACHINE_INSTRUCTION_NUMBER: { [key: string]: { [key: number]: numbe
   CPA: { 1: 0x44, 2: 0x40 },
   JZE: { 2: 0x63 },
   JMI: { 2: 0x61 },
+  JPL: { 2: 0x65 },
   SUBA: { 1: 0x25 },
   JUMP: { 2: 0x64 },
   RET: { 1: 0x81 }

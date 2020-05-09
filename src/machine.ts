@@ -116,6 +116,16 @@ class JMI2 extends MachineInstruction {
   }
 }
 
+class JPL2 extends MachineInstruction {
+  evaluate(): number {
+    if (this.register.getSignFlag() === 0 && this.register.getZeroFlag() === 0) {
+      this.register.setProgramCounter(this.addrValue());
+      return 0;
+    }
+    return 2;
+  }
+}
+
 export class Machine {
   constructor(
     private memory: Memory,
@@ -162,5 +172,6 @@ export class Machine {
     [MACHINE_INSTRUCTION_NUMBER.JUMP[2]]: new JUMP2(),
     [MACHINE_INSTRUCTION_NUMBER.JZE[2]]: new JZE2(),
     [MACHINE_INSTRUCTION_NUMBER.JMI[2]]: new JMI2(),
+    [MACHINE_INSTRUCTION_NUMBER.JPL[2]]: new JPL2(),
   });
 }
