@@ -57,13 +57,26 @@ export class Compiler {
     }
     if (instruction === 'DC') {
       // TODO: ここで内容分の語数を確保する
-      this.memory.setValueAt(currentAddress, parseConst(args[2])!);
-      return 1;
+      const operands = this.lineAnalyzer.parseOperands();
+      operands.forEach((item, index) => {
+        const parsedValue = parseConst(item);
+        if (!parsedValue) {
+          throw new Error(`不正な定数 ${item}`);
+        }
+        this.memory.setValueAt(currentAddress + index, parsedValue);
+      });
+      return operands.length;
     }
     if (instruction === 'DS') {
-      this.memory.setValueAt(currentAddress, 0);
-      // TODO: ここで内容分の語数を確保する
-      return 1;
+      const lengthStr = this.lineAnalyzer.parseOperands()[0];
+      const length = Number.parseInt(lengthStr);
+      if (isNaN(length)) {
+        throw new Error(`不正な定数 ${length}`);
+      }
+      for (let i = 0; i < length; i++) {
+        this.memory.setValueAt(currentAddress + i, 0);
+      }
+      return length;
     }
     if (instruction === 'OUT') {
       this.memory.setValueAt(currentAddress, MACHINE_INSTRUCTION_NUMBER.SVC[2] * 0x100 | 2);
