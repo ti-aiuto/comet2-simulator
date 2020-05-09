@@ -220,8 +220,15 @@ export class Machine {
     if (!instructionImpl) {
       throw new Error(`実装が未定義 ${this.instructionNumber()} at ${this.register.getProgramCounter()}`);
     }
+
+    console.log(`PC: ${toWordHex(this.register.getProgramCounter())}`);
+
     instructionImpl.setup(this.memory, this.register);
     const step = await instructionImpl.evaluate();
+
+    console.log(this.memory.toString());
+    console.log(this.register.toString());
+
     if (step === 0) {
       return;
     }
