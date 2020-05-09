@@ -9,7 +9,8 @@ export class LineAnalyzer {
 
   load(args: string[]) {
     this.args = args;
-    this.operands = args[2].split(';')[0].split(',').map(item => item.trim());
+    const operands = args[2].split(';')[0].split(',').map(item => item.trim());
+    this.operands = operands.length === 1 && operands[0] === '' ? [] : operands;
   }
 
   parseLabel(): string | null {
