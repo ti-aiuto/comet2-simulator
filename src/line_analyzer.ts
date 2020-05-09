@@ -41,7 +41,7 @@ export class LineAnalyzer {
     }
     const instructionNumber = this.toInstructionNumber(this.args[1], wordLength);
     if (!instructionNumber) {
-      throw new Error(`未定義の機械語 ${name}`);
+      throw new Error(`未定義の機械語 ${this.args[1]}`);
     }
     word |= instructionNumber * 0x100;
     return word;
