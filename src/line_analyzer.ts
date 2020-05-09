@@ -25,18 +25,27 @@ export class LineAnalyzer {
     let word = 0;
     if (this.args[2].length) {
       if (this.isGeneralRegister(this.args[2])) {
+        // r1
         word |= this.extractRegisterNumber(this.args[2]) * 0x10;
         if (this.args[3].length) {
           if (this.isGeneralRegister(this.args[3])) {
+            // r2
             word |= this.extractRegisterNumber(this.args[3]);
           } else {
+            // addr
             wordLength = 2;
           }
         } else if (this.args[4].length && this.isGeneralRegister(this.args[4])) {
+          // x
           word |= this.extractRegisterNumber(this.args[4]);
         }
       } else {
+        // addr
         wordLength = 2;
+        if (this.args[3].length && this.isGeneralRegister(this.args[3])) {
+          // addr, x
+          word |= this.extractRegisterNumber(this.args[3]);
+        }
       }
     }
     const instructionNumber = this.toInstructionNumber(this.args[1], wordLength);
