@@ -210,6 +210,16 @@ export class Machine {
     }
   }
 
+  executeInteractive(): { executeNext(): Promise<boolean> } {
+    const that = this;
+    this.register.setProgramCounter(this.beginAddr);
+    return {
+      executeNext(): Promise<boolean> {
+        return that.executeInstruction();
+      }
+    }
+  }
+
   private instructionNumber(): number {
     const currentAddress = this.register.getProgramCounter();
     return (this.memory.getValueAt(currentAddress) & 0xFF00) >> 8;
