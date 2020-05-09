@@ -1,4 +1,4 @@
-import { MemoryAddress, MACHINE_INSTRUCTION_NUMBER, WordValue } from "./utils";
+import { MemoryAddress, MACHINE_INSTRUCTION_NUMBER, WordValue, parseConst } from "./utils";
 import { Memory } from "./memory";
 import { LineAnalyzer } from "./line_analyzer";
 
@@ -56,8 +56,8 @@ export class Compiler {
       return 0;
     }
     if (instruction === 'DC') {
-      this.memory.setValueAt(currentAddress, Number(args[2]));
       // TODO: ここで内容分の語数を確保する
+      this.memory.setValueAt(currentAddress, parseConst(args[2])!);
       return 1;
     }
     if (instruction === 'DS') {

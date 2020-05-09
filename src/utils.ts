@@ -29,3 +29,16 @@ export function parseSource(text: string): string[][] {
     .split("\n")
     .map((line) => [...line.split("\t"), '', '', '', ''].slice(0, 5));
 }
+
+export function parseConst(value: string | null): number | null {
+  if (!value) {
+    return null;
+  }
+  if (value.startsWith('#')) {
+    return Number.parseInt(value.substring(1), 16);
+  }
+  if (['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-'].includes(value[0])) {
+    return Number.parseInt(value);
+  }
+  return null;
+}
