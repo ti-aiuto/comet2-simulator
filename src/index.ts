@@ -1,4 +1,5 @@
 import fs from 'fs';
+import readline from 'readline';
 
 import { Memory } from './memory';
 import { Register } from './register';
@@ -22,9 +23,18 @@ import { parseSource } from './utils';
   console.log(labelToAddrMap);
 
   // TODO: START命令から開始位置を持ってくる
-  await new Machine(memory, register, 0).execute();
+  const controller = new Machine(memory, register).executeInteractive(0);
+  const readlineStdin = readline.createInterface(process.stdin, process.stdout);
 
-  console.log('処理終了');
-  console.log(register.toString());
-  console.log(memory.toString());
+  readlineStdin.on("line", function () {
+    (async () => {
+      const result = await controller.executeNext();
+      if (result === false) {
+        readlineStdin.close();
+        console.log('処理終了');
+        console.log(register.toString());
+        console.log(memory.toString());
+      }
+    })();
+  });
 })();

@@ -195,14 +195,13 @@ export class Machine {
   constructor(
     private memory: Memory,
     private register: Register,
-    private beginAddr: MemoryAddress
   ) {
   }
 
   private debug = true;
 
-  async execute(): Promise<void> {
-    this.register.setProgramCounter(this.beginAddr);
+  async execute(beginAddr: number): Promise<void> {
+    this.register.setProgramCounter(beginAddr);
     while (true) {
       if (await this.executeInstruction() === false) {
         break;
@@ -210,9 +209,9 @@ export class Machine {
     }
   }
 
-  executeInteractive(): { executeNext(): Promise<boolean> } {
+  executeInteractive(beginAddr: number): { executeNext(): Promise<boolean> } {
     const that = this;
-    this.register.setProgramCounter(this.beginAddr);
+    this.register.setProgramCounter(beginAddr);
     return {
       executeNext(): Promise<boolean> {
         return that.executeInstruction();
