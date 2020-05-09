@@ -1,4 +1,4 @@
-import { MACHINE_INSTRUCTION_NUMBER, WordValue, MemoryAddress } from "./utils";
+import { MACHINE_INSTRUCTION_NUMBER, WordValue, MemoryAddress, toWordHex } from "./utils";
 import { Memory } from "./memory";
 import { Register } from "./register";
 
@@ -135,6 +135,26 @@ class JPL2 extends MachineInstruction {
   }
 }
 
+class SVC2 extends MachineInstruction {
+  evaluate(): number {
+    const instruction = this.memory.getValueAt(this.register.getProgramCounter());
+    const typeValue = instruction & 0xF;
+    if (typeValue === 2) {
+      // 出力
+      const dataAddr = this.memory.getValueAt(this.register.getProgramCounter() + 1);
+      const lengthAddr = this.memory.getValueAt(this.register.getProgramCounter() + 2);
+      const length = this.memory.getValueAt(lengthAddr);
+      console.log(`OUT出力 #${toWordHex(dataAddr)} を ${length}\n---`);
+      let result = '';
+      for (let i = 0; i < length; i++) {
+        result += `#${toWordHex(this.memory.getValueAt(dataAddr))} `;
+      }
+      console.log(`${result}\n---`);
+    }
+    return 3;
+  }
+}
+
 export class Machine {
   constructor(
     private memory: Memory,
@@ -183,5 +203,6 @@ export class Machine {
     [MACHINE_INSTRUCTION_NUMBER.JZE[2]]: new JZE2(),
     [MACHINE_INSTRUCTION_NUMBER.JMI[2]]: new JMI2(),
     [MACHINE_INSTRUCTION_NUMBER.JPL[2]]: new JPL2(),
+    [MACHINE_INSTRUCTION_NUMBER.SVC[2]]: new SVC2(),
   });
 }
