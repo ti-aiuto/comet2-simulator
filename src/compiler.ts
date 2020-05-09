@@ -1,4 +1,4 @@
-import { MemoryAddress } from "./utils";
+import { MemoryAddress, MACHINE_INSTRUCTION_NUMBER } from "./utils";
 import { Memory } from "./memory";
 import { LineAnalyzer } from "./line_analyzer";
 
@@ -31,7 +31,7 @@ export class Compiler {
         currentAddress += this.compileMachineInstruction(currentAddress, args);
         return;
       }
-      currentAddress += this.compilePseudoInstruction(currentAddress, args);
+      currentAddress += this.compilePseudoOrMacroInstruction(currentAddress, args);
     });
   }
 
@@ -45,7 +45,7 @@ export class Compiler {
     });
   }
 
-  private compilePseudoInstruction(currentAddress: number, args: string[]): number {
+  private compilePseudoOrMacroInstruction(currentAddress: number, args: string[]): number {
     const instruction = args[1];
     if (instruction === 'START' || instruction === 'END') {
       // TODO: STARTの引数をとるようにする
@@ -60,6 +60,14 @@ export class Compiler {
       this.memory.setValueAt(currentAddress, 0);
       // TODO: ここで内容分の語数を確保する
       return 1;
+    }
+    if (instruction === 'OUT') {
+      this.memory.setValueAt(currentAddress, MACHINE_INSTRUCTION_NUMBER.SVC[2]);
+      this.memory.setValueAt(currentAddress + 1, 0);
+      this.memory.setValueAt(currentAddress + 2, 0);
+      this.labelAddrsToReplace.push([currentAddress + 1, args[2]]);
+      this.labelAddrsToReplace.push([currentAddress + 2, args[3]]);
+      return 3;
     }
     throw new Error(`未定義の命令 ${instruction}`);
   }
