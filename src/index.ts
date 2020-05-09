@@ -21,6 +21,7 @@ import { parseSource } from './utils';
   console.log('ラベル対応付け');
   console.log(labelToAddrMap);
 
+  // TODO: START命令から開始位置を持ってくる
   new Machine(memory, register, 0).execute();
 
   console.log('処理終了');
