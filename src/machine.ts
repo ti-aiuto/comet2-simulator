@@ -61,6 +61,15 @@ class SUBA1 extends MachineInstruction {
   }
 }
 
+class ADDA2 extends MachineInstruction {
+  evaluate(): number {
+    // TODO: オーバーフロー要考慮
+    this.register.setGRAt(this.gR1Value(),
+      this.register.getGRAt(this.gR1Value()) + this.memory.getValueAt(this.addrIRAddedValue()));
+    return 2;
+  }
+}
+
 class CPA1 extends MachineInstruction {
   evaluate(): number {
     const result = this.register.getGRAt(this.gR1Value()) - this.register.getGRAt(this.gR2OrIRValue());
@@ -167,6 +176,7 @@ export class Machine {
     [MACHINE_INSTRUCTION_NUMBER.LD[2]]: new LD2(),
     [MACHINE_INSTRUCTION_NUMBER.ST[2]]: new ST2(),
     [MACHINE_INSTRUCTION_NUMBER.SUBA[1]]: new SUBA1(),
+    [MACHINE_INSTRUCTION_NUMBER.ADDA[2]]: new ADDA2(),
     [MACHINE_INSTRUCTION_NUMBER.CPA[1]]: new CPA1(),
     [MACHINE_INSTRUCTION_NUMBER.CPA[2]]: new CPA2(),
     [MACHINE_INSTRUCTION_NUMBER.JUMP[2]]: new JUMP2(),

@@ -12,6 +12,7 @@ export const MACHINE_INSTRUCTION_NUMBER: { [key: string]: { [key: number]: numbe
   JMI: { 2: 0x61 },
   JPL: { 2: 0x65 },
   SUBA: { 1: 0x25 },
+  ADDA: { 2: 0x20 },
   JUMP: { 2: 0x64 },
   RET: { 1: 0x81 }
 });
