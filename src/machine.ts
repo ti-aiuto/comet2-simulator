@@ -75,6 +75,20 @@ class CPA1 extends MachineInstruction {
   }
 }
 
+class CPA2 extends MachineInstruction {
+  evaluate(): number {
+    const result = this.register.getGRAt(this.gR1Value()) - this.memory.getValueAt(this.addrIRAddedValue());
+    if (result > 0) {
+      this.register.setFlags(0, 0, 0);
+    } else if (result === 0) {
+      this.register.setFlags(0, 0, 1);
+    } else {
+      this.register.setFlags(0, 1, 0);
+    }
+    return 2;
+  }
+}
+
 class JUMP2 extends MachineInstruction {
   evaluate(): number {
     this.register.setProgramCounter(this.addrValue());
@@ -144,6 +158,7 @@ export class Machine {
     [MACHINE_INSTRUCTION_NUMBER.ST[2]]: new ST2(),
     [MACHINE_INSTRUCTION_NUMBER.SUBA[1]]: new SUBA1(),
     [MACHINE_INSTRUCTION_NUMBER.CPA[1]]: new CPA1(),
+    [MACHINE_INSTRUCTION_NUMBER.CPA[2]]: new CPA2(),
     [MACHINE_INSTRUCTION_NUMBER.JUMP[2]]: new JUMP2(),
     [MACHINE_INSTRUCTION_NUMBER.JZE[2]]: new JZE2(),
     [MACHINE_INSTRUCTION_NUMBER.JMI[2]]: new JMI2(),

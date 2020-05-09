@@ -7,7 +7,7 @@ export const GENERAL_REGISTER_NAMES = Object.freeze(['GR0', 'GR1', 'GR2', 'GR3',
 export const MACHINE_INSTRUCTION_NUMBER: { [key: string]: { [key: number]: number } } = Object.freeze({
   LD: { 2: 0x10 },
   ST: { 2: 0x11 },
-  CPA: { 1: 0x40 },
+  CPA: { 1: 0x44, 2: 0x40 },
   JZE: { 2: 0x63 },
   JMI: { 2: 0x61 },
   SUBA: { 1: 0x25 },
