@@ -48,6 +48,24 @@ abstract class MachineInstruction {
   }
 }
 
+class AND1 extends MachineInstruction {
+  evaluate(): number {
+    const result = this.gR1Value() & this.gR2OrIRValue();
+    this.register.setGRAt(this.gR1Value(), result);
+    this.setFlags(result);
+    return 1;
+  }
+}
+
+class AND2 extends MachineInstruction {
+  evaluate(): number {
+    const result = this.gR1Value() & this.memory.getValueAt(this.gR2OrIRValue());
+    this.register.setGRAt(this.gR1Value(), result);
+    this.setFlags(result);
+    return 2;
+  }
+}
+
 class LD1 extends MachineInstruction {
   evaluate(): number {
     const result = this.memory.getValueAt(this.gR2OrIRValue());
@@ -211,6 +229,8 @@ export class Machine {
   }
 
   static readonly MACHINE_INSTRUCTION_IMPLIMENTATION: { [key: number]: MachineInstruction } = Object.freeze({
+    [MACHINE_INSTRUCTION_NUMBER.AND[1]]: new AND1(),
+    [MACHINE_INSTRUCTION_NUMBER.AND[2]]: new AND2(),
     [MACHINE_INSTRUCTION_NUMBER.LD[1]]: new LD1(),
     [MACHINE_INSTRUCTION_NUMBER.LD[2]]: new LD2(),
     [MACHINE_INSTRUCTION_NUMBER.LAD[2]]: new LAD2(),

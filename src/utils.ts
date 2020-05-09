@@ -5,6 +5,7 @@ export type FlagValue = 0 | 1;
 export const GENERAL_REGISTER_NAMES = Object.freeze(['GR0', 'GR1', 'GR2', 'GR3', 'GR4', 'GR5', 'GR6', 'GR7']);
 
 export const MACHINE_INSTRUCTION_NUMBER: { [key: string]: { [key: number]: number } } = Object.freeze({
+  AND: { 1: 0x34, 2: 0x30 },
   LD: { 1: 0x14, 2: 0x10 },
   ST: { 2: 0x11 },
   CPA: { 1: 0x44, 2: 0x40 },
