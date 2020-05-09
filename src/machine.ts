@@ -50,7 +50,7 @@ abstract class MachineInstruction {
 
 class AND1 extends MachineInstruction {
   async evaluate(): Promise<number> {
-    const result = this.gR1Value() & this.gR2OrIRValue();
+    const result = this.register.getGRAt(this.gR1Value()) & this.register.getGRAt(this.gR2OrIRValue());
     this.register.setGRAt(this.gR1Value(), result);
     this.setFlags(result);
     return 1;
@@ -59,7 +59,7 @@ class AND1 extends MachineInstruction {
 
 class AND2 extends MachineInstruction {
   async evaluate(): Promise<number> {
-    const result = this.gR1Value() & this.memory.getValueAt(this.gR2OrIRValue());
+    const result = this.register.getGRAt(this.gR1Value()) & this.memory.getValueAt(this.addrIRAddedValue());
     this.register.setGRAt(this.gR1Value(), result);
     this.setFlags(result);
     return 2;
