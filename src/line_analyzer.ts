@@ -40,7 +40,8 @@ export class LineAnalyzer {
             // addr
             wordLength = 2;
           }
-        } else if (this.operands[2]?.length && this.isGeneralRegister(this.operands[2])) {
+        }
+        if (this.operands[2]?.length && this.isGeneralRegister(this.operands[2])) {
           // x
           word |= this.extractRegisterNumber(this.operands[2]);
         }
