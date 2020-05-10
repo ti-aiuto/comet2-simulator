@@ -15,13 +15,17 @@ import { IO } from './io';
   const memory = new Memory();
   const register = new Register();
 
-  const labelToAddrMap = {};
-
-  const compiler = new Compiler(memory, 0, source, labelToAddrMap);
+  const compiler = new Compiler(memory, 0, source, {});
   compiler.compile();
-  const addrToSourceIndex = compiler.addrToSourceIndexMap();
+
+  const addrToSourceIndexMap = compiler.addrToSourceIndexMap();
   console.log('コンパイル完了');
-  console.log(memoryDebugInfo(memory.dump(), addrToSourceIndex, source));
+
+  function debugDump() {
+    console.log(memoryDebugInfo(memory.dump(), addrToSourceIndexMap, source));
+    console.log(register.toString());
+  }
+  debugDump();
 
   let inputFunc: ((value: string) => void) | null;
   const io = new IO(() => {
@@ -48,14 +52,12 @@ import { IO } from './io';
       try {
         console.log(`PC: ${toWordHex(register.getProgramCounter())}`);
         const result = await controller.executeNext();
-        console.log(memoryDebugInfo(memory.dump(), addrToSourceIndex, source));
-        console.log(register.toString());
+        debugDump();
         console.log('---');
         if (result === false) {
           readlineStdin.close();
           console.log('処理終了');
-          console.log(memoryDebugInfo(memory.dump(), addrToSourceIndex, source));
-          console.log(register.toString());
+          debugDump();
         }
       } catch (e) {
         console.error(e);
