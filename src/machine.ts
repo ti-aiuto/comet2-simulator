@@ -1,4 +1,4 @@
-import { MACHINE_INSTRUCTION_NUMBER, WordValue, toWordHex } from "./utils";
+import { MACHINE_INSTRUCTION_NUMBER, WordValue, toWordHex, isASCII } from "./utils";
 import { Memory } from "./memory";
 import { Register } from "./register";
 import { IO } from './io';
@@ -182,7 +182,21 @@ class SVC2 extends MachineInstruction {
   async evaluate(): Promise<number> {
     const instruction = this.memory.getValueAt(this.register.getProgramCounter());
     const typeValue = instruction & 0xF;
-    if (typeValue === 2) {
+    if (typeValue === 1) {
+      // 入力
+      const value = await this.io.in();
+      if (!isASCII(value)) {
+        throw new Error(`不正な入力 ${value}`);
+      }
+      const dataAddr = this.memory.getValueAt(this.register.getProgramCounter() + 1);
+      const lengthAddr = this.memory.getValueAt(this.register.getProgramCounter() + 2);
+      for (let i=0; i<value.length; i++) {
+        this.memory.setValueAt(dataAddr + i, value[i].charCodeAt(0));
+      }
+      this.memory.setValueAt(lengthAddr, value.length);
+      return 3;
+    } 
+     if (typeValue === 2) {
       // 出力
       const dataAddr = this.memory.getValueAt(this.register.getProgramCounter() + 1);
       const lengthAddr = this.memory.getValueAt(this.register.getProgramCounter() + 2);
@@ -190,11 +204,12 @@ class SVC2 extends MachineInstruction {
       await this.io.out(`---\nOUT From: #${toWordHex(dataAddr)} Length: ${length}\n---`);
       let result = '';
       for (let i = 0; i < length; i++) {
-        result += `${String.fromCharCode(this.memory.getValueAt(dataAddr))} `;
+        result += `${String.fromCharCode(this.memory.getValueAt(dataAddr + i))}`;
       }
       await this.io.out(`${result}\n---`);
+      return 3;
     }
-    return 3;
+    return 1;
   }
 }
 

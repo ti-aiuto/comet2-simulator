@@ -89,6 +89,15 @@ export class Compiler {
       }
       return length;
     }
+    if (instruction === 'IN') {
+      this.memory.setValueAt(currentAddress, MACHINE_INSTRUCTION_NUMBER.SVC[2] * 0x100 | 1);
+      this.memory.setValueAt(currentAddress + 1, 0);
+      this.memory.setValueAt(currentAddress + 2, 0);
+      const operands = this.lineAnalyzer.parseOperands();
+      this.labelAddrsToReplace.push([currentAddress + 1, operands[0]]);
+      this.labelAddrsToReplace.push([currentAddress + 2, operands[1]]);
+      return 3;
+    }
     if (instruction === 'OUT') {
       this.memory.setValueAt(currentAddress, MACHINE_INSTRUCTION_NUMBER.SVC[2] * 0x100 | 2);
       this.memory.setValueAt(currentAddress + 1, 0);

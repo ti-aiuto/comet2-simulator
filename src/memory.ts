@@ -8,7 +8,7 @@ export class Memory {
   }
 
   setValueAt(address: MemoryAddress, value: WordValue) {
-    this.values[address] = value;
+    this.values[address] = value & 0xFFFF;
   }
 
   toString(): string {

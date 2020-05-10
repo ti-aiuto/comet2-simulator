@@ -46,3 +46,7 @@ export function parseConst(value: string | null): number | null {
   }
   return null;
 }
+
+export function isASCII(value: string): boolean {
+  return /^[\x00-\x7F]*$/.test(value);
+}

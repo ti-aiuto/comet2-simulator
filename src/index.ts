@@ -32,7 +32,7 @@ function memoryDebugInfo(memoryDump: MemoryDump, addrToSource: { [key: number]: 
   console.log(memoryDebugInfo(memory.dump(), addrToSourceIndex, source));
 
   const io = new IO(async () => {
-    return '';
+    return 'test';
   }, async (value: string) => {
     console.log(value);
   });
@@ -43,16 +43,20 @@ function memoryDebugInfo(memoryDump: MemoryDump, addrToSource: { [key: number]: 
 
   readlineStdin.on("line", function () {
     (async () => {
-      console.log(`PC: ${toWordHex(register.getProgramCounter())}`);
-      const result = await controller.executeNext();
-      console.log(memoryDebugInfo(memory.dump(), addrToSourceIndex, source));
-      console.log(register.toString());
-      console.log('---');
-      if (result === false) {
-        readlineStdin.close();
-        console.log('処理終了');
+      try {
+        console.log(`PC: ${toWordHex(register.getProgramCounter())}`);
+        const result = await controller.executeNext();
         console.log(memoryDebugInfo(memory.dump(), addrToSourceIndex, source));
         console.log(register.toString());
+        console.log('---');
+        if (result === false) {
+          readlineStdin.close();
+          console.log('処理終了');
+          console.log(memoryDebugInfo(memory.dump(), addrToSourceIndex, source));
+          console.log(register.toString());
+        }  
+      } catch (e) {
+        console.error(e);
       }
     })();
   });
