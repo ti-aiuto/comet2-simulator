@@ -42,7 +42,7 @@ import { IO } from './io';
 
   readlineStdin.on("line", function (value: string) {
     (async () => {
-      if (value && inputFunc) {
+      if (inputFunc) {
         // 入力処理の捕捉
         inputFunc(value.trim());
         inputFunc = null;
