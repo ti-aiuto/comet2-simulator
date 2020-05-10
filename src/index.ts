@@ -5,7 +5,22 @@ import { Memory } from './memory';
 import { Register } from './register';
 import { Compiler } from './compiler';
 import { Machine } from './machine';
-import { parseSource } from './utils';
+import { parseSource, toWordHex, MemoryDump, ParsedSource } from './utils';
+
+function memoryDebugInfo(memoryDump: MemoryDump, addrToSource: { [key: number]: number }, source: ParsedSource): string[][] {
+  return memoryDump.map((line) => {
+    const [addr, value] = line;
+    const result: string[] = [toWordHex(addr), toWordHex(value)];
+    const sourceIndex = addrToSource[addr];
+    if (sourceIndex) {
+      const sourceLine = source[sourceIndex];
+      if (sourceLine) {
+        result.push(sourceLine.join(' '));
+      }
+    }
+    return result;
+  });
+}
 
 (async function () {
   const sourceText = fs.readFileSync(process.argv[2], 'utf-8').toString();
@@ -20,9 +35,7 @@ import { parseSource } from './utils';
   compiler.compile();
   const addrToSourceIndex = compiler.addrToSourceIndexMap();
   console.log('コンパイル完了');
-  console.log(memory.toString());
-  console.log('ソースコード対応付け');
-  console.log(addrToSourceIndex);
+  console.log(memoryDebugInfo(memory.dump(), addrToSourceIndex, source));
 
   // TODO: START命令から開始位置を持ってくる
   const controller = new Machine(memory, register).executeInteractive(0);
@@ -30,15 +43,16 @@ import { parseSource } from './utils';
 
   readlineStdin.on("line", function () {
     (async () => {
+      console.log(`PC: ${toWordHex(register.getProgramCounter())}`);
       const result = await controller.executeNext();
-
-      console.log(memory.dump());
-
+      console.log(memoryDebugInfo(memory.dump(), addrToSourceIndex, source));
+      console.log(register.toString());
+      console.log('---');
       if (result === false) {
         readlineStdin.close();
         console.log('処理終了');
+        console.log(memoryDebugInfo(memory.dump(), addrToSourceIndex, source));
         console.log(register.toString());
-        console.log(memory.toString());
       }
     })();
   });

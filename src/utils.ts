@@ -1,6 +1,8 @@
 export type MemoryAddress = number;
 export type WordValue = number;
 export type FlagValue = 0 | 1;
+export type MemoryDump = [MemoryAddress, WordValue][];
+export type ParsedSource = string[][];
 
 export const GENERAL_REGISTER_NAMES = Object.freeze(['GR0', 'GR1', 'GR2', 'GR3', 'GR4', 'GR5', 'GR6', 'GR7']);
 
@@ -24,7 +26,7 @@ export function toWordHex(num: number): string {
   return ('0000' + (num.toString(16))).slice(-4).toUpperCase();
 }
 
-export function parseSource(text: string): string[][] {
+export function parseSource(text: string): ParsedSource {
   return text
     .replace(/\r\n?/g, "\n")
     .trim()
