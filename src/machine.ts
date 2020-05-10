@@ -1,6 +1,7 @@
-import { MACHINE_INSTRUCTION_NUMBER, WordValue, MemoryAddress, toWordHex } from "./utils";
+import { MACHINE_INSTRUCTION_NUMBER, WordValue, toWordHex } from "./utils";
 import { Memory } from "./memory";
 import { Register } from "./register";
+import { IO } from './io';
 
 abstract class MachineInstruction {
   protected memory!: Memory;
@@ -172,6 +173,12 @@ class JPL2 extends MachineInstruction {
 }
 
 class SVC2 extends MachineInstruction {
+  private io!: IO;
+
+  setIO(io: IO) {
+    this.io = io;
+  }
+
   async evaluate(): Promise<number> {
     const instruction = this.memory.getValueAt(this.register.getProgramCounter());
     const typeValue = instruction & 0xF;
@@ -180,12 +187,12 @@ class SVC2 extends MachineInstruction {
       const dataAddr = this.memory.getValueAt(this.register.getProgramCounter() + 1);
       const lengthAddr = this.memory.getValueAt(this.register.getProgramCounter() + 2);
       const length = this.memory.getValueAt(lengthAddr);
-      console.log(`---\nOUT From: #${toWordHex(dataAddr)} Length: ${length}\n---`);
+      await this.io.out(`---\nOUT From: #${toWordHex(dataAddr)} Length: ${length}\n---`);
       let result = '';
       for (let i = 0; i < length; i++) {
         result += `${String.fromCharCode(this.memory.getValueAt(dataAddr))} `;
       }
-      console.log(`${result}\n---`);
+      await this.io.out(`${result}\n---`);
     }
     return 3;
   }
@@ -195,6 +202,7 @@ export class Machine {
   constructor(
     private memory: Memory,
     private register: Register,
+    private io: IO
   ) {
   }
 
@@ -232,6 +240,10 @@ export class Machine {
       throw new Error(`実装が未定義 ${this.instructionNumber()} at ${this.register.getProgramCounter()}`);
     }
     instructionImpl.setup(this.memory, this.register);
+    if (instructionImpl instanceof SVC2) {
+      // NOTICE: SVCのエミュレータのため特別対応
+      instructionImpl.setIO(this.io);
+    }
     const step = await instructionImpl.evaluate();
     if (step === 0) {
       return true;

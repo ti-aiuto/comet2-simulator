@@ -6,6 +6,7 @@ import { Register } from './register';
 import { Compiler } from './compiler';
 import { Machine } from './machine';
 import { parseSource, toWordHex, MemoryDump, ParsedSource } from './utils';
+import { IO } from './io';
 
 function memoryDebugInfo(memoryDump: MemoryDump, addrToSource: { [key: number]: number }, source: ParsedSource): [string, string, string[]][] {
   return memoryDump.map((line) => {
@@ -30,8 +31,14 @@ function memoryDebugInfo(memoryDump: MemoryDump, addrToSource: { [key: number]: 
   console.log('コンパイル完了');
   console.log(memoryDebugInfo(memory.dump(), addrToSourceIndex, source));
 
+  const io = new IO(async () => {
+    return '';
+  }, async (value: string) => {
+    console.log(value);
+  });
+
   // TODO: START命令から開始位置を持ってくる
-  const controller = new Machine(memory, register).executeInteractive(0);
+  const controller = new Machine(memory, register, io).executeInteractive(0);
   const readlineStdin = readline.createInterface(process.stdin, process.stdout);
 
   readlineStdin.on("line", function () {
