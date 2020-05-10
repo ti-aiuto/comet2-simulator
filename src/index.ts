@@ -5,17 +5,8 @@ import { Memory } from './memory';
 import { Register } from './register';
 import { Compiler } from './compiler';
 import { Machine } from './machine';
-import { parseSource, toWordHex, MemoryDump, ParsedSource, isASCII } from './utils';
+import { parseSource, toWordHex, memoryDebugInfo } from './utils';
 import { IO } from './io';
-
-function memoryDebugInfo(memoryDump: MemoryDump, addrToSource: { [key: number]: number }, source: ParsedSource): [string, string, string, string[]][] {
-  return memoryDump.map((line) => {
-    const [addr, value] = line;
-    const sourceIndex = addrToSource[addr];
-    const asciiChar = isASCII(String.fromCharCode(value)) ? escape(String.fromCharCode(value)) : '';
-    return [toWordHex(addr), toWordHex(value), asciiChar, sourceIndex ? source[sourceIndex] : null || []];
-  });
-}
 
 (async function () {
   const sourceText = fs.readFileSync(process.argv[2], 'utf-8').toString();
@@ -53,7 +44,7 @@ function memoryDebugInfo(memoryDump: MemoryDump, addrToSource: { [key: number]: 
         inputFunc = null;
         return;
       }
-      
+
       try {
         console.log(`PC: ${toWordHex(register.getProgramCounter())}`);
         const result = await controller.executeNext();
@@ -65,7 +56,7 @@ function memoryDebugInfo(memoryDump: MemoryDump, addrToSource: { [key: number]: 
           console.log('処理終了');
           console.log(memoryDebugInfo(memory.dump(), addrToSourceIndex, source));
           console.log(register.toString());
-        }  
+        }
       } catch (e) {
         console.error(e);
       }

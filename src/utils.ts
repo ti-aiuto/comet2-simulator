@@ -50,3 +50,12 @@ export function parseConst(value: string | null): number | null {
 export function isASCII(value: string): boolean {
   return /^[\x00-\x7F]*$/.test(value);
 }
+
+export function memoryDebugInfo(memoryDump: MemoryDump, addrToSource: { [key: number]: number }, source: ParsedSource): [string, string, string, string[]][] {
+  return memoryDump.map((line) => {
+    const [addr, value] = line;
+    const sourceIndex = addrToSource[addr];
+    const asciiChar = isASCII(String.fromCharCode(value)) ? escape(String.fromCharCode(value)) : '';
+    return [toWordHex(addr), toWordHex(value), asciiChar, sourceIndex ? source[sourceIndex] : null || []];
+  });
+}
