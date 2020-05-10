@@ -180,10 +180,10 @@ class SVC2 extends MachineInstruction {
       const dataAddr = this.memory.getValueAt(this.register.getProgramCounter() + 1);
       const lengthAddr = this.memory.getValueAt(this.register.getProgramCounter() + 2);
       const length = this.memory.getValueAt(lengthAddr);
-      console.log(`OUT From: #${toWordHex(dataAddr)} Length: ${length}\n---`);
+      console.log(`---\nOUT From: #${toWordHex(dataAddr)} Length: ${length}\n---`);
       let result = '';
       for (let i = 0; i < length; i++) {
-        result += `#${toWordHex(this.memory.getValueAt(dataAddr))} `;
+        result += `${String.fromCharCode(this.memory.getValueAt(dataAddr))} `;
       }
       console.log(`${result}\n---`);
     }
