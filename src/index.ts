@@ -29,6 +29,9 @@ import { parseSource } from './utils';
   readlineStdin.on("line", function () {
     (async () => {
       const result = await controller.executeNext();
+
+      console.log(memory.dump());
+
       if (result === false) {
         readlineStdin.close();
         console.log('処理終了');

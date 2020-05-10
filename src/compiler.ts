@@ -25,7 +25,6 @@ export class Compiler {
     let currentAddress = this.beginAddr;
     // まずラベルの対応付け、DC, DSを処理する
     this.source.forEach((args) => {
-      this.memory.setDebugInfoAt(currentAddress, args.join("\t"));
       this.lineAnalyzer.load(args);
       const label = this.lineAnalyzer.parseLabel();
       if (label) {

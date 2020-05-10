@@ -12,16 +12,16 @@ export class Memory {
     this.values[address] = value;
   }
 
-  setDebugInfoAt(address: MemoryAddress, value: string) {
-    this.debugInfo[address] = value;
-  }
-
   toString(): string {
     let result = '';
-    // TODO: ここで順序を保証する
-    for (let [key, value] of Object.entries(this.values)) {
+    for (let key of Object.keys(this.values)) {
+      const value = this.values[Number(key)];
       result += `${toWordHex(Number(key))}: ${toWordHex(Number(value))} ; ${this.debugInfo[Number(key)] || ''}\n`
     }
     return result.trim();
+  }
+
+  dump(): [MemoryAddress, WordValue][] {
+    return Object.keys(this.values).map(key => [Number(key), this.values[Number(key)]]);
   }
 }
