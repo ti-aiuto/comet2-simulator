@@ -5,14 +5,15 @@ import { Memory } from './memory';
 import { Register } from './register';
 import { Compiler } from './compiler';
 import { Machine } from './machine';
-import { parseSource, toWordHex, MemoryDump, ParsedSource } from './utils';
+import { parseSource, toWordHex, MemoryDump, ParsedSource, isASCII } from './utils';
 import { IO } from './io';
 
-function memoryDebugInfo(memoryDump: MemoryDump, addrToSource: { [key: number]: number }, source: ParsedSource): [string, string, string[]][] {
+function memoryDebugInfo(memoryDump: MemoryDump, addrToSource: { [key: number]: number }, source: ParsedSource): [string, string, string, string[]][] {
   return memoryDump.map((line) => {
     const [addr, value] = line;
     const sourceIndex = addrToSource[addr];
-    return [toWordHex(addr), toWordHex(value), sourceIndex ? source[sourceIndex] : null || []];
+    const asciiChar = isASCII(String.fromCharCode(value)) ? escape(String.fromCharCode(value)) : '';
+    return [toWordHex(addr), toWordHex(value), asciiChar, sourceIndex ? source[sourceIndex] : null || []];
   });
 }
 
