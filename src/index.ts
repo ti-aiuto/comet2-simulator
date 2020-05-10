@@ -51,6 +51,7 @@ function memoryDebugInfo(memoryDump: MemoryDump, addrToSource: { [key: number]: 
         // 入力処理の捕捉
         inputFunc(value.trim());
         inputFunc = null;
+        return;
       }
       
       try {
