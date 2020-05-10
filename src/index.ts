@@ -31,8 +31,11 @@ function memoryDebugInfo(memoryDump: MemoryDump, addrToSource: { [key: number]: 
   console.log('コンパイル完了');
   console.log(memoryDebugInfo(memory.dump(), addrToSourceIndex, source));
 
-  const io = new IO(async () => {
-    return 'test';
+  let inputFunc: ((value: string) => void) | null;
+  const io = new IO(() => {
+    return new Promise((resolve) => {
+      inputFunc = resolve;
+    });
   }, async (value: string) => {
     console.log(value);
   });
@@ -41,8 +44,14 @@ function memoryDebugInfo(memoryDump: MemoryDump, addrToSource: { [key: number]: 
   const controller = new Machine(memory, register, io).executeInteractive(0);
   const readlineStdin = readline.createInterface(process.stdin, process.stdout);
 
-  readlineStdin.on("line", function () {
+  readlineStdin.on("line", function (value: string) {
     (async () => {
+      if (value && inputFunc) {
+        // 入力処理の捕捉
+        inputFunc(value.trim());
+        inputFunc = null;
+      }
+      
       try {
         console.log(`PC: ${toWordHex(register.getProgramCounter())}`);
         const result = await controller.executeNext();
