@@ -7,18 +7,11 @@ import { Compiler } from './compiler';
 import { Machine } from './machine';
 import { parseSource, toWordHex, MemoryDump, ParsedSource } from './utils';
 
-function memoryDebugInfo(memoryDump: MemoryDump, addrToSource: { [key: number]: number }, source: ParsedSource): string[][] {
+function memoryDebugInfo(memoryDump: MemoryDump, addrToSource: { [key: number]: number }, source: ParsedSource): [string, string, string[]][] {
   return memoryDump.map((line) => {
     const [addr, value] = line;
-    const result: string[] = [toWordHex(addr), toWordHex(value)];
     const sourceIndex = addrToSource[addr];
-    if (sourceIndex) {
-      const sourceLine = source[sourceIndex];
-      if (sourceLine) {
-        result.push(sourceLine.join(' '));
-      }
-    }
-    return result;
+    return [toWordHex(addr), toWordHex(value), sourceIndex ? source[sourceIndex] : null || []];
   });
 }
 
