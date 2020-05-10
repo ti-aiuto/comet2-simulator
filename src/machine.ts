@@ -183,6 +183,7 @@ class SVC2 extends MachineInstruction {
     const instruction = this.memory.getValueAt(this.register.getProgramCounter());
     const typeValue = instruction & 0xF;
     if (typeValue === 1) {
+      await this.io.out('[debug] 文字列を入力してください');
       // 入力
       const value = await this.io.in();
       if (!isASCII(value)) {
@@ -201,7 +202,7 @@ class SVC2 extends MachineInstruction {
       const dataAddr = this.memory.getValueAt(this.register.getProgramCounter() + 1);
       const lengthAddr = this.memory.getValueAt(this.register.getProgramCounter() + 2);
       const length = this.memory.getValueAt(lengthAddr);
-      await this.io.out(`---\nOUT From: #${toWordHex(dataAddr)} Length: ${length}\n---`);
+      await this.io.out(`---\n[debug] OUT From: #${toWordHex(dataAddr)} Length: ${length}\n---`);
       let result = '';
       for (let i = 0; i < length; i++) {
         result += `${String.fromCharCode(this.memory.getValueAt(dataAddr + i))}`;
