@@ -7,6 +7,7 @@ export class Compiler {
   private lineAnalyzer = new LineAnalyzer();
   private literalValues: [MemoryAddress, WordValue][] = [];
   private addressCounter: number = 0;
+  private memoryAddressToSourceindexMap: { [key: number]: number } = {};
 
   constructor(
     private memory: Memory,
@@ -21,20 +22,30 @@ export class Compiler {
     this.allocateLiteralValues();
   }
 
+  addrToSourceIndexMap(): { [key: number]: number } {
+    return { ...this.memoryAddressToSourceindexMap };
+  }
+
   private parseAndAllocate() {
     let currentAddress = this.beginAddr;
     // まずラベルの対応付け、DC, DSを処理する
-    this.source.forEach((args) => {
+    this.source.forEach((args, sourceIndex) => {
       this.lineAnalyzer.load(args);
       const label = this.lineAnalyzer.parseLabel();
       if (label) {
         this.labelToAddrMap[label] = currentAddress;
       }
+      let size = 0;
       if (this.lineAnalyzer.isMachineInstruction()) {
-        currentAddress += this.compileMachineInstruction(currentAddress, args);
+        size = this.compileMachineInstruction(currentAddress, args);
+      } else {
+        size = this.compilePseudoOrMacroInstruction(currentAddress, args);
+      }
+      if (size === 0) {
         return;
       }
-      currentAddress += this.compilePseudoOrMacroInstruction(currentAddress, args);
+      this.memoryAddressToSourceindexMap[currentAddress] = sourceIndex;
+      currentAddress += size;
     });
     this.addressCounter = currentAddress;
   }

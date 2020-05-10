@@ -16,11 +16,13 @@ import { parseSource } from './utils';
 
   const labelToAddrMap = {};
 
-  new Compiler(memory, 0, source, labelToAddrMap).compile();
+  const compiler = new Compiler(memory, 0, source, labelToAddrMap);
+  compiler.compile();
+  const addrToSourceIndex = compiler.addrToSourceIndexMap();
   console.log('コンパイル完了');
   console.log(memory.toString());
-  console.log('ラベル対応付け');
-  console.log(labelToAddrMap);
+  console.log('ソースコード対応付け');
+  console.log(addrToSourceIndex);
 
   // TODO: START命令から開始位置を持ってくる
   const controller = new Machine(memory, register).executeInteractive(0);
