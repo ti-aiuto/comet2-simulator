@@ -186,9 +186,6 @@ class SVC2 extends MachineInstruction {
       await this.io.out('[debug] 文字列を入力してください');
       // 入力
       const value = await this.io.in();
-      if (!isASCII(value)) {
-        throw new Error(`不正な入力 ${value}`);
-      }
       const dataAddr = this.memory.getValueAt(this.register.getProgramCounter() + 1);
       const lengthAddr = this.memory.getValueAt(this.register.getProgramCounter() + 2);
       for (let i=0; i<value.length; i++) {
